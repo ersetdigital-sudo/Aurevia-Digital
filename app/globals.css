@@ -1,0 +1,312 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+
+  --page: #faf6f0;
+  --surface: #ffffff;
+  --surface-2: #f0ebe3;
+  --surface-3: #f5f0e8;
+  --ink: #1c1917;
+  --body: #44403c;
+  --muted: #57534e;
+  --faint: #a8a29e;
+  --line: #e7e0d4;
+  --line-strong: #d6cdbf;
+  --hint: #a8a29e;
+  --brand: #c2410c;
+  --brand-2: #ea580c;
+  --brand-soft: #fbeee7;
+  --brand-ink: #c2410c;
+  --accent: #0f766e;
+  --accent-soft: #e6f2f1;
+  --ok-soft: #e6f4eb;
+  --ok-ink: #14532d;
+  --warn-soft: #fdf1e3;
+  --warn-ink: #78350f;
+  --bad-soft: #fbeaea;
+  --bad-ink: #7f1d1d;
+  --info-soft: #e6f2f6;
+  --info-ink: #164e63;
+  --hero-bg: #f0ebe3;
+  --hero-veil: linear-gradient(
+    95deg,
+    rgba(240, 235, 227, 0.94) 0%,
+    rgba(240, 235, 227, 0.86) 30%,
+    rgba(240, 235, 227, 0.55) 48%,
+    rgba(240, 235, 227, 0.12) 62%,
+    rgba(240, 235, 227, 0) 74%
+  );
+  --hero-veil-sm: linear-gradient(
+    180deg,
+    rgba(240, 235, 227, 0.96) 0%,
+    rgba(240, 235, 227, 0.92) 60%,
+    rgba(240, 235, 227, 0.88) 100%
+  );
+}
+
+.dark {
+  color-scheme: dark;
+
+  --page: #1c1917;
+  --surface: #292524;
+  --surface-2: #221f1d;
+  --surface-3: #292524;
+  --ink: #faf6f0;
+  --body: #d6d3d1;
+  --muted: #a8a29e;
+  --faint: #78716c;
+  --line: #44403c;
+  --line-strong: #57534e;
+  --hint: #78716c;
+  --brand-soft: #3d2c21;
+  --brand-ink: #fdba74;
+  --accent: #2dd4bf;
+  --accent-soft: #29413c;
+  --ok-soft: #2c4034;
+  --ok-ink: #86efac;
+  --warn-soft: #4b3d24;
+  --warn-ink: #fcd34d;
+  --bad-soft: #4a3130;
+  --bad-ink: #fca5a5;
+  --info-soft: #284144;
+  --info-ink: #67e8f9;
+  --hero-bg: #211e1c;
+  --hero-veil: linear-gradient(
+    95deg,
+    rgba(28, 25, 23, 0.95) 0%,
+    rgba(28, 25, 23, 0.88) 30%,
+    rgba(28, 25, 23, 0.6) 48%,
+    rgba(28, 25, 23, 0.2) 62%,
+    rgba(28, 25, 23, 0) 74%
+  );
+  --hero-veil-sm: linear-gradient(
+    180deg,
+    rgba(28, 25, 23, 0.96) 0%,
+    rgba(28, 25, 23, 0.92) 60%,
+    rgba(28, 25, 23, 0.9) 100%
+  );
+}
+
+@theme inline {
+  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-hint: var(--hint);
+  --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-ink: var(--ok-ink);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-ink: var(--warn-ink);
+  --color-bad-soft: var(--bad-soft);
+  --color-bad-ink: var(--bad-ink);
+  --color-info-soft: var(--info-soft);
+  --color-info-ink: var(--info-ink);
+}
+
+@layer base {
+  html {
+    background-color: var(--page);
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--page);
+    color: var(--ink);
+  }
+
+  ::selection {
+    background-color: rgba(194, 65, 12, 0.18);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand-ink);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer components {
+  .wrap {
+    max-width: 1160px;
+    margin-inline: auto;
+    padding-inline: 20px;
+  }
+
+  .eyebrow {
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--faint);
+  }
+
+  .btn-orange {
+    background-color: var(--brand);
+    color: #fff;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  .card {
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+  }
+
+  .cta {
+    background-image: linear-gradient(100deg, #c2410c, #ea580c);
+    color: #fff;
+    border-radius: 999px;
+    font-weight: 700;
+    box-shadow: 0 10px 24px rgba(194, 65, 12, 0.28);
+  }
+
+  .cta:hover {
+    filter: brightness(1.05);
+  }
+
+  .ic {
+    width: 1.25em;
+    height: 1.25em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    display: inline-block;
+    vertical-align: middle;
+    flex: none;
+  }
+
+  .tile {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero {
+    background-color: var(--hero-bg);
+  }
+
+  .hero-veil {
+    position: absolute;
+    inset: 0;
+    background-image: var(--hero-veil-sm);
+  }
+
+  @media (min-width: 1024px) {
+    .hero {
+      min-height: 520px;
+    }
+
+    .hero-veil {
+      background-image: var(--hero-veil);
+    }
+  }
+
+  .band-veil {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+      90deg,
+      rgba(28, 25, 23, 0.96) 0%,
+      rgba(28, 25, 23, 0.86) 45%,
+      rgba(28, 25, 23, 0.55) 70%,
+      rgba(28, 25, 23, 0.75) 100%
+    );
+  }
+
+  .readout {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  .qris-scan {
+    background-image: linear-gradient(
+      180deg,
+      rgba(194, 65, 12, 0) 0%,
+      rgba(194, 65, 12, 0.16) 45%,
+      rgba(194, 65, 12, 0.5) 50%,
+      rgba(194, 65, 12, 0.16) 55%,
+      rgba(194, 65, 12, 0) 100%
+    );
+    animation: qris-scan 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+
+  @keyframes qris-scan {
+    0% {
+      transform: translateY(-36px);
+      opacity: 0;
+    }
+    12% {
+      opacity: 1;
+    }
+    88% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(200px);
+      opacity: 0;
+    }
+  }
+
+  .status-pulse {
+    animation: status-pulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes status-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.35;
+      transform: scale(0.7);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qris-scan,
+  .status-pulse {
+    animation: none;
+  }
+}
