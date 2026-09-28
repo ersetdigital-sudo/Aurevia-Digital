@@ -27,6 +27,35 @@ export function createTrxRef(): string {
   return `AD-${code}`;
 }
 
+export type OrderDraft = {
+  category: string;
+  product: string;
+  target: string;
+  amount: number;
+  invoice_no?: string;
+};
+
+/**
+ * Simpan pesanan ke database lewat /api/orders (service role di server).
+ * Mengembalikan nomor referensi dari database, atau null kalau gagal
+ * (checkout tetap lanjut dengan invoice lokal).
+ */
+export async function submitOrder(draft: OrderDraft): Promise<{ ref: string } | null> {
+  try {
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(draft),
+    });
+    if (!res.ok) return null;
+
+    const data = (await res.json()) as { order?: { ref?: string } };
+    return data.order?.ref ? { ref: data.order.ref } : null;
+  } catch {
+    return null;
+  }
+}
+
 export type SavedInvoice = {
   ref: string;
   service: string;

@@ -1,3 +1,4 @@
+import { ContactForm } from "@/components/ContactForm";
 import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { contactChannels } from "@/data/help";
@@ -61,6 +62,19 @@ export function ContactBand() {
                 ))}
               </ul>
             </div>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.05}>
+          <div className="card mt-4 p-5 sm:p-7">
+            <h3 className="font-display text-xl font-semibold tracking-[-0.02em]">
+              Kirim pesan ke tim kami
+            </h3>
+            <p className="mt-1.5 max-w-[62ch] text-[13px] leading-relaxed text-body">
+              Balasan dikirim ke email atau WhatsApp yang kamu isi. Untuk kendala transaksi,
+              sertakan nomor referensi agar tidak perlu bolak-balik.
+            </p>
+            <ContactForm />
           </div>
         </Reveal>
       </div>

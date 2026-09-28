@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Icon } from "@/components/Icon";
 import {
@@ -13,6 +13,7 @@ import {
 import { findInvoice, type SavedInvoice } from "@/lib/checkout";
 import { formatRupiah } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import type { OrderStatus } from "@/types";
 
 type Phase = "idle" | "loading" | "found" | "notfound";
 
@@ -27,10 +28,87 @@ const idMonths = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep",
 
 function formatStamp(timestamp: number): string {
   const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "-";
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${date.getDate()} ${idMonths[date.getMonth()]} ${date.getFullYear()}, ${pad(
     date.getHours(),
   )}:${pad(date.getMinutes())}`;
+}
+
+type ApiOrder = {
+  ref: string;
+  category: string;
+  product: string;
+  target: string;
+  amount: number;
+  status: OrderStatus;
+  payment_method: string;
+  created_at: string;
+  updated_at: string;
+};
+
+const metaByStatus: Record<
+  OrderStatus,
+  { state: TransactionState; stepIndex: number; note: string }
+> = {
+  pending: {
+    state: "pending",
+    stepIndex: 1,
+    note: "Pesanan sudah dibuat. Selesaikan pembayaran QRIS agar transaksi bisa diproses.",
+  },
+  paid: {
+    state: "processing",
+    stepIndex: 2,
+    note: "Pembayaran diterima. Transaksi sedang diteruskan ke penyedia.",
+  },
+  processing: {
+    state: "processing",
+    stepIndex: 2,
+    note: "Dana sudah diterima dan diteruskan ke penyedia. Produk muncul maksimal 5 menit lagi.",
+  },
+  success: {
+    state: "success",
+    stepIndex: 3,
+    note: "Transaksi selesai dan produk sudah dikirim ke nomor tujuan.",
+  },
+  failed: {
+    state: "failed",
+    stepIndex: 2,
+    note: "Transaksi gagal diteruskan ke penyedia. Dana dikembalikan maksimal 1×24 jam.",
+  },
+  refunded: {
+    state: "failed",
+    stepIndex: 3,
+    note: "Transaksi dibatalkan dan dana sudah dikembalikan ke metode pembayaran.",
+  },
+};
+
+function orderToTransaction(order: ApiOrder): DemoTransaction {
+  const meta = metaByStatus[order.status] ?? metaByStatus.processing;
+  return {
+    ref: order.ref,
+    state: meta.state,
+    service: `${order.category} · ${order.product}`,
+    target: order.target,
+    amount: formatRupiah(order.amount),
+    method: order.payment_method || "QRIS",
+    createdAt: formatStamp(Date.parse(order.created_at)),
+    updatedAt: formatStamp(Date.parse(order.updated_at)),
+    stepIndex: meta.stepIndex,
+    note: meta.note,
+  };
+}
+
+/** Ambil pesanan asli dari database lebih dulu, baru jatuh ke contoh/lokal. */
+async function fetchOrder(ref: string): Promise<DemoTransaction | null> {
+  try {
+    const res = await fetch(`/api/orders/${encodeURIComponent(ref)}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { order?: ApiOrder };
+    return data.order ? orderToTransaction(data.order) : null;
+  } catch {
+    return null;
+  }
 }
 
 function invoiceToTransaction(invoice: SavedInvoice): DemoTransaction {
@@ -55,15 +133,8 @@ export function StatusChecker() {
   const [result, setResult] = useState<DemoTransaction | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const timerRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) window.clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  function lookup(rawRef: string) {
+  async function lookup(rawRef: string) {
     const code = rawRef.trim().toUpperCase();
 
     if (!code) {
@@ -82,20 +153,19 @@ export function StatusChecker() {
     setResult(null);
     setPhase("loading");
 
-    if (timerRef.current) window.clearTimeout(timerRef.current);
-    timerRef.current = window.setTimeout(() => {
-      const localInvoice = findInvoice(code);
-      const found =
-        demoTransactions.find((item) => item.ref === code) ??
-        (localInvoice ? invoiceToTransaction(localInvoice) : null);
-      setResult(found);
-      setPhase(found ? "found" : "notfound");
-    }, 700);
+    const localInvoice = findInvoice(code);
+    const found =
+      (await fetchOrder(code)) ??
+      demoTransactions.find((item) => item.ref === code) ??
+      (localInvoice ? invoiceToTransaction(localInvoice) : null);
+
+    setResult(found);
+    setPhase(found ? "found" : "notfound");
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    lookup(value);
+    void lookup(value);
   }
 
   async function copyRef(ref: string) {
@@ -120,7 +190,7 @@ export function StatusChecker() {
     <section id="beranda" className="border-b border-line bg-surface-2">
       <div className="wrap pt-11 pb-10 lg:pt-14">
         <p className="readout text-[11px] tracking-[0.14em] text-muted uppercase">
-          Pelacakan Transaksi · 4 referensi contoh · Diperbarui 27 Sep 2026, 15:47 WIB
+          Pelacakan Transaksi · Data langsung dari database pesanan
         </p>
         <h1 className="font-display mt-3 max-w-[15ch] text-[clamp(2.25rem,5.5vw,3.75rem)] leading-[1.06] font-semibold tracking-[-0.02em]">
           Cek Status Transaksi
@@ -274,7 +344,7 @@ export function StatusChecker() {
                       type="button"
                       onClick={() => {
                         setValue(item.ref);
-                        lookup(item.ref);
+                        void lookup(item.ref);
                       }}
                     className="readout rounded-full border border-line-strong px-3 py-1.5 text-[12px] font-semibold transition hover:border-brand hover:text-brand-ink"
                   >

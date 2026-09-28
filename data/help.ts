@@ -91,7 +91,7 @@ export const faqs: FaqItem[] = [
     topic: "akun",
     question: "Nomor HP saya berganti, bagaimana cara mengubahnya?",
     answer:
-      "Masuk ke Akun → Profil → Nomor HP. Sistem akan meminta OTP ke nomor lama lebih dulu. Jika nomor lama sudah tidak aktif, kirim email ke bantuan@aureviadigital.id dari email terdaftar disertai foto KTP dan nomor referensi transaksi terakhir.",
+      "Masuk ke Akun → Profil → Nomor HP. Sistem akan meminta OTP ke nomor lama lebih dulu. Jika nomor lama sudah tidak aktif, kirim email ke bantuan@aureviadigital.net dari email terdaftar disertai foto KTP dan nomor referensi transaksi terakhir.",
   },
   {
     id: "f3",
@@ -161,7 +161,7 @@ export const faqs: FaqItem[] = [
     topic: "refund",
     question: "Berapa lama proses pengembalian dana?",
     answer:
-      "Virtual account dan e-wallet: maksimal 1×24 jam. Kartu kredit: 3–5 hari kerja tergantung penerbit kartu. Tunai minimarket dikembalikan lewat transfer bank dalam 3 hari kerja — konfirmasikan nomor rekening lewat bantuan@aureviadigital.id.",
+      "Virtual account dan e-wallet: maksimal 1×24 jam. Kartu kredit: 3–5 hari kerja tergantung penerbit kartu. Tunai minimarket dikembalikan lewat transfer bank dalam 3 hari kerja — konfirmasikan nomor rekening lewat bantuan@aureviadigital.net.",
   },
 ];
 
@@ -179,10 +179,10 @@ export const contactChannels: ContactChannel[] = [
     id: "email",
     icon: "mail",
     title: "Email",
-    value: "bantuan@aureviadigital.id",
+    value: "bantuan@aureviadigital.net",
     description: "Cocok untuk laporan dengan lampiran bukti transfer. Dibalas kurang dari 12 jam kerja.",
     action: "Kirim email",
-    href: "mailto:bantuan@aureviadigital.id",
+    href: "mailto:bantuan@aureviadigital.net",
   },
   {
     id: "status",

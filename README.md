@@ -6,7 +6,7 @@ Landing page Aurevia Digital — hasil konversi dari HTML statis ke Next.js 15 (
 
 ```bash
 npm install
-cp .env.example .env.local   # opsional, isi SITE_URL dengan domain asli
+cp .env.example .env.local   # isi seluruh variabel di bawah
 npm run dev
 ```
 
@@ -19,16 +19,45 @@ Buka http://localhost:3000
 | `npm start`       | Jalankan hasil build          |
 | `npm run lint`    | ESLint                        |
 | `npm run typecheck` | Cek TypeScript tanpa emit   |
+| `npm run seed`    | Pratinjau seed katalog dari `data/` |
+
+## Environment
+
+| Variabel | Dipakai untuk |
+| -------- | ------------- |
+| `SITE_URL` | Metadata SEO, sitemap, robots.txt |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Baca katalog & pengaturan (RLS: hanya baris aktif) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Tulis pesanan/pesan + seluruh API admin (server-only) |
+| `ADMIN_PASSWORD` | Login panel admin (juga jadi kunci tanda tangan cookie sesi) |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `CLOUDINARY_UPLOAD_PRESET` | Upload gambar produk & QRIS (signed upload dari server) |
+
+Isi tabel `categories`, `products`, `orders`, `messages`, `settings` dengan menjalankan `supabase/schema.sql` di SQL Editor Supabase.
+
+## Panel Admin & Data Dinamis
+
+- Panel admin ada di `/admin` (login `/admin/login`, satu password dari `ADMIN_PASSWORD`). Menu: Ringkasan, Produk & kategori, Pesanan, Pesan, Pengaturan (foto QRIS + info kontak).
+- Semua API admin dijaga cookie sesi bertanda tangan HMAC (`lib/adminAuth.ts`); upload gambar lewat `/api/cloudinary/sign` sehingga API secret Cloudinary tidak pernah sampai ke browser.
+- Halaman depan mengambil kategori/produk dari Supabase (`lib/catalog.ts`). Kalau tabel masih kosong atau gagal diambil, situs otomatis memakai data statis di `data/` supaya tidak pernah blank.
+- Pesanan dari checkout disimpan ke Supabase lewat `POST /api/orders`; halaman `/status` membaca ulang lewat `GET /api/orders/[ref]`.
+
+### Mengisi katalog awal
+
+```bash
+npm run seed              # pratinjau: berapa kategori/produk yang akan dibuat
+npm run seed -- --apply   # tulis ke Supabase
+npm run seed -- --apply --reset   # hapus katalog lama lalu tulis ulang
+```
+
+Setelah tersimpan, semua isi katalog bisa diedit dari panel admin tanpa deploy ulang.
 
 ## Struktur
 
 ```
 app/
-  layout.tsx        Root layout: font, metadata, JSON-LD, Header & Footer
-  page.tsx          Susunan section halaman utama
-  tentang/page.tsx  Halaman Tentang Kami
-  bantuan/page.tsx  Halaman Pusat Bantuan
-  status/page.tsx   Halaman Cek Status Transaksi
+  layout.tsx        Root layout: font & metadata
+  (site)/           Halaman publik (Header, Footer, JSON-LD) — page, tentang, bantuan, status, legal
+  admin/            Panel admin: login + (panel) berisi ringkasan, produk, pesanan, pesan, pengaturan
+  api/              API admin, checkout pesanan, form pesan, tanda tangan upload Cloudinary
   globals.css       Tema (token warna + dark mode) & komponen dasar
   fonts.ts          Plus Jakarta Sans via next/font/local
   icon.svg          Favicon (monogram Aurevia)
@@ -46,10 +75,15 @@ components/
   Reveal                                   Wrapper animasi scroll-reveal
   JsonLd                                   Structured data
 data/               Semua konten statis (edit di sini, bukan di JSX)
-lib/                Helper `cn`, ikon, format, checkout, dsb
+  content.ts        Daftar layanan di halaman depan
+  checkout.ts       Kategori & produk checkout + fallback katalog
+  status.ts         Contoh transaksi & status sistem
+lib/                Helper `cn`, ikon, format, checkout, supabase, cloudinary, adminAuth
 types/              Tipe data bersama
 public/images/      Aset gambar
 app/fonts/          File font lokal
+supabase/schema.sql Skema tabel + RLS
+scripts/            Seed katalog untuk pengisian awal
 ```
 
 ## Catatan

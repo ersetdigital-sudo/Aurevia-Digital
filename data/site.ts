@@ -4,7 +4,9 @@ export const siteConfig = {
   tagline: "Semua Pembayaran, Satu Tempat",
   description:
     "Aurevia Digital memudahkan pembayaran pulsa, paket data, listrik, air, internet, BPJS, e-wallet, hingga multifinance. Transaksi cepat, aman, dan terpercaya.",
-  url: process.env.SITE_URL ?? "https://aureviadigital.id",
+  // Fallback ini harus sama dengan SITE_URL di Vercel (produksi = aureviadigital.net),
+  // kalau tidak sitemap/robots bisa menunjuk domain yang salah.
+  url: process.env.SITE_URL ?? "https://aureviadigital.net",
   locale: "id_ID",
 };
 

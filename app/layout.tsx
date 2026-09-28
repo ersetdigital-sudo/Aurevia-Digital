@@ -1,12 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { MotionConfig } from "framer-motion";
 import "./globals.css";
 import { fraunces, plexMono, plusJakartaSans } from "./fonts";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import { IconSprite } from "@/components/IconSprite";
-import { JsonLd } from "@/components/JsonLd";
 import { heroImage, siteConfig } from "@/data/site";
 
 const themeScript = `!function(){try{var s=localStorage.getItem("aurevia-theme");var d=s==="dark"||(s===null&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark")}catch(e){}}();`;
@@ -75,12 +71,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="font-sans antialiased">
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <IconSprite />
-        <MotionConfig reducedMotion="user">
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </MotionConfig>
-        <JsonLd />
+        {children}
       </body>
     </html>
   );

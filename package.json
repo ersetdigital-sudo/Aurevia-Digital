@@ -7,9 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "node --import ./scripts/ts-paths.mjs scripts/seed-catalog.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "framer-motion": "^13.4.2",
     "next": "^15.5.26",
     "react": "^19.0.0",

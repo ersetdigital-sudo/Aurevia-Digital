@@ -4,9 +4,18 @@ import { useCallback, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Reveal } from "@/components/Reveal";
 import { CheckoutDrawer } from "@/components/CheckoutDrawer";
-import { services } from "@/data/content";
+import type { CheckoutCategory, QrisSettings, Service } from "@/types";
 
-export function Services() {
+type ServicesProps = {
+  /** Katalog dari database (fallback data statis kalau DB kosong). */
+  services: Service[];
+  /** Konfigurasi kategori/produk untuk drawer checkout. */
+  checkout: CheckoutCategory[];
+  /** Pengaturan QRIS dari admin (null -> pakai QR contoh). */
+  qris: QrisSettings | null;
+};
+
+export function Services({ services, checkout, qris }: ServicesProps) {
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const closeDrawer = useCallback(() => setOpenCategoryId(null), []);
   const totalItems = services.reduce((sum, service) => sum + service.items.length, 0);
@@ -80,7 +89,12 @@ export function Services() {
         </a>
       </div>
 
-      <CheckoutDrawer categoryId={openCategoryId} onClose={closeDrawer} />
+      <CheckoutDrawer
+        categoryId={openCategoryId}
+        onClose={closeDrawer}
+        checkout={checkout}
+        qris={qris}
+      />
     </section>
   );
 }

@@ -7,10 +7,11 @@ import { Icon } from "@/components/Icon";
 import { QrisCode } from "@/components/QrisCode";
 import { getCheckoutCategory } from "@/data/checkout";
 import { services } from "@/data/content";
-import { createTrxRef, detectOperator, saveInvoice } from "@/lib/checkout";
+import { createTrxRef, detectOperator, saveInvoice, submitOrder } from "@/lib/checkout";
+import { cldImg } from "@/lib/cloudinary";
 import { formatRupiah } from "@/lib/format";
 import { cn } from "@/lib/cn";
-import type { CheckoutItem } from "@/types";
+import type { CheckoutCategory, CheckoutItem, QrisSettings } from "@/types";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -19,6 +20,10 @@ type CheckoutDrawerProps = {
   initialGroup?: string | null;
   initialItem?: string | null;
   onClose: () => void;
+  /** Konfigurasi kategori/produk — hasil fetch database, fallback data statis. */
+  checkout: CheckoutCategory[];
+  /** Pengaturan QRIS dari admin (null -> pakai QR contoh). */
+  qris: QrisSettings | null;
 };
 
 const stepMeta: Record<Exclude<Step, 1>, { title: string; subtitle: string }> = {
@@ -29,7 +34,14 @@ const stepMeta: Record<Exclude<Step, 1>, { title: string; subtitle: string }> = 
 
 const paymentChannels = ["BCA", "BRI", "MANDIRI", "BNI", "GOPAY", "OVO", "DANA", "SHOPEEPAY"];
 
-export function CheckoutDrawer({ categoryId, initialGroup, initialItem, onClose }: CheckoutDrawerProps) {
+export function CheckoutDrawer({
+  categoryId,
+  initialGroup,
+  initialItem,
+  onClose,
+  checkout,
+  qris,
+}: CheckoutDrawerProps) {
   const isOpen = categoryId !== null;
 
   useEffect(() => {
@@ -73,6 +85,8 @@ export function CheckoutDrawer({ categoryId, initialGroup, initialItem, onClose 
             initialGroup={initialGroup ?? null}
             initialItem={initialItem ?? null}
             onClose={onClose}
+            checkout={checkout}
+            qris={qris}
           />
         </motion.div>
       ) : null}
@@ -85,10 +99,20 @@ type CheckoutPanelProps = {
   initialGroup: string | null;
   initialItem: string | null;
   onClose: () => void;
+  checkout: CheckoutCategory[];
+  qris: QrisSettings | null;
 };
 
-function CheckoutPanel({ categoryId, initialGroup, initialItem, onClose }: CheckoutPanelProps) {
-  const category = getCheckoutCategory(categoryId);
+function CheckoutPanel({
+  categoryId,
+  initialGroup,
+  initialItem,
+  onClose,
+  checkout,
+  qris,
+}: CheckoutPanelProps) {
+  const category =
+    checkout.find((entry) => entry.id === categoryId) ?? getCheckoutCategory(categoryId);
   const service = services.find((entry) => entry.id === categoryId) ?? services[0];
   const initialGroupIndex = (() => {
     if (!initialGroup) return 0;
@@ -110,6 +134,7 @@ function CheckoutPanel({ categoryId, initialGroup, initialItem, onClose }: Check
   const [trxRef, setTrxRef] = useState("");
   const [secondsLeft, setSecondsLeft] = useState(15 * 60);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [errorTarget, setErrorTarget] = useState(false);
   const [errorItem, setErrorItem] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -167,22 +192,40 @@ function CheckoutPanel({ categoryId, initialGroup, initialItem, onClose }: Check
     setStep(2);
   }
 
-  function handleConfirmPayment() {
+  async function handleConfirmPayment() {
     setIsVerifying(true);
-    window.setTimeout(() => {
-      saveInvoice({
-        ref: trxRef,
-        service: service.title,
-        product: selectedItem?.label ?? "-",
-        target: targetNumber,
-        targetLabel: category.field.label,
-        amount: totalAmount,
-        createdAt: Date.now(),
-      });
-      setIsVerifying(false);
-      setStepDirection(1);
-      setStep(4);
-    }, 1200);
+    setSaveError(null);
+
+    // Catat pesanan ke database lewat API server; kalau gagal, invoice lokal jadi cadangan.
+    const created = await submitOrder({
+      category: category.id,
+      product: selectedItem?.label ?? "-",
+      target: targetNumber,
+      amount: totalAmount,
+      invoice_no: trxRef,
+    });
+
+    const ref = created?.ref ?? trxRef;
+    if (!created) {
+      setSaveError(
+        "Pesanan belum tercatat di server. Simpan nomor invoice ini dan hubungi admin agar transaksi tetap diproses.",
+      );
+    }
+
+    saveInvoice({
+      ref,
+      service: service.title,
+      product: selectedItem?.label ?? "-",
+      target: targetNumber,
+      targetLabel: category.field.label,
+      amount: totalAmount,
+      createdAt: Date.now(),
+    });
+
+    setTrxRef(ref);
+    setIsVerifying(false);
+    setStepDirection(1);
+    setStep(4);
   }
 
   function handleTransactAgain() {
@@ -361,12 +404,28 @@ function CheckoutPanel({ categoryId, initialGroup, initialItem, onClose }: Check
                 </div>
 
                 <div className="relative mx-auto h-[200px] w-[200px] overflow-hidden rounded-2xl border border-line-strong bg-surface p-3 text-ink shadow-[0_4px_12px_rgba(28,25,23,0.08)]">
-                  <QrisCode className="h-full w-full" />
-                  <span aria-hidden="true" className="qris-scan pointer-events-none absolute inset-x-3 h-9" />
+                  {qris?.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={cldImg(qris.image_url, 400)}
+                      alt={`Kode QRIS ${qris.merchant || "Aurevia Digital"}`}
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <>
+                      <QrisCode className="h-full w-full" />
+                      <span
+                        aria-hidden="true"
+                        className="qris-scan pointer-events-none absolute inset-x-3 h-9"
+                      />
+                    </>
+                  )}
                 </div>
 
                 <p className="readout text-[11px] text-faint">
-                  NMID: ID1000000000001 · Merchant: AUREVIA DIGITAL PPOB
+                  {qris?.image_url
+                    ? `Merchant: ${qris.merchant || "AUREVIA DIGITAL"}`
+                    : "NMID: ID1000000000001 · Merchant: AUREVIA DIGITAL PPOB"}
                 </p>
 
                 <p className="inline-flex items-center gap-1.5 rounded-full border border-warn-ink/25 bg-warn-soft px-3.5 py-1.5 text-[12px] font-bold text-warn-ink">
@@ -389,7 +448,8 @@ function CheckoutPanel({ categoryId, initialGroup, initialItem, onClose }: Check
                 </div>
 
                 <p className="text-[11px] text-hint">
-                  Tampilan QRIS contoh — sambungkan ke payment gateway sebelum dipakai di produksi.
+                  {qris?.note ||
+                    "Tampilan QRIS contoh — sambungkan ke payment gateway sebelum dipakai di produksi."}
                 </p>
 
                 <div className="flex gap-2.5 pt-1">
@@ -447,8 +507,7 @@ function CheckoutPanel({ categoryId, initialGroup, initialItem, onClose }: Check
 
                 <dl className="space-y-2 rounded-2xl border border-dashed border-line-strong bg-surface-3 p-4 text-left text-[13px] sm:p-5">
                   <ReceiptRow label="No. Invoice" value={trxRef} mono />
-                  <ReceiptRow label="Status" value="Menunggu Konfirmasi Admin" />
-                  <ReceiptRow label="Kategori" value={service.title} />
+                  <ReceiptRow label="Status" value="Menunggu Konfirmasi Admin" />                  <ReceiptRow label="Kategori" value={service.title} />
                   <ReceiptRow label="Produk" value={selectedItem?.label ?? "-"} />
                   <ReceiptRow label={category.field.label} value={targetNumber} mono />
                   <div className="border-t border-dashed border-line-strong" />
@@ -459,6 +518,16 @@ function CheckoutPanel({ categoryId, initialGroup, initialItem, onClose }: Check
                     </dd>
                   </div>
                 </dl>
+
+                {saveError ? (
+                  <p
+                    role="alert"
+                    className="flex items-start gap-2 rounded-xl bg-bad-soft px-4 py-3 text-left text-[12.5px] font-semibold text-bad-ink"
+                  >
+                    <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0" />
+                    {saveError}
+                  </p>
+                ) : null}
 
                 <div className="flex flex-col gap-2.5 pt-1 sm:flex-row">
                   <Link

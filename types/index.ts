@@ -105,3 +105,86 @@ export type CheckoutCategory = {
   groups: CheckoutGroup[];
 };
 
+// =========================================================
+// Baris database (Supabase) — dipakai admin & data dinamis
+// =========================================================
+
+export type DbCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  tile_class: string;
+  description: string;
+  sort: number;
+  active: boolean;
+  nominal_title: string;
+  field_label: string;
+  field_placeholder: string;
+  field_hint: string;
+  admin_fee: number;
+  created_at: string;
+};
+
+export type DbProduct = {
+  id: string;
+  category_id: string;
+  name: string;
+  detail: string;
+  price: number;
+  variable: boolean;
+  image_url: string | null;
+  group_name: string;
+  sort: number;
+  active: boolean;
+  created_at: string;
+};
+
+export type OrderStatus =
+  | "pending"
+  | "paid"
+  | "processing"
+  | "success"
+  | "failed"
+  | "refunded";
+
+export type DbOrder = {
+  id: string;
+  ref: string;
+  category: string;
+  category_id: string | null;
+  product: string;
+  target: string;
+  amount: number;
+  status: OrderStatus;
+  payment_method: string;
+  invoice_no: string | null;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MessageStatus = "new" | "read" | "replied";
+
+export type DbMessage = {
+  id: string;
+  name: string;
+  contact: string;
+  subject: string;
+  body: string;
+  status: MessageStatus;
+  created_at: string;
+};
+
+export type QrisSettings = {
+  image_url: string;
+  merchant: string;
+  note: string;
+};
+
+export type SiteSettings = {
+  announcement: string;
+  wa: string;
+  email: string;
+};
+

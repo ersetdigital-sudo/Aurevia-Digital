@@ -5,24 +5,46 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Icon } from "@/components/Icon";
 import { CheckoutDrawer } from "@/components/CheckoutDrawer";
 import { Reveal } from "@/components/Reveal";
-import { operators } from "@/data/operators";
-import type { PulsaPackage } from "@/types";
+import { getCheckoutCategory } from "@/data/checkout";
+import { formatRupiah } from "@/lib/format";
 import { cn } from "@/lib/cn";
+import type { CheckoutCategory, CheckoutGroup, CheckoutItem, QrisSettings } from "@/types";
 
-export function PulsaSection() {
-  const [activeOperatorId, setActiveOperatorId] = useState(operators[0].id);
-  const [selectedPackage, setSelectedPackage] = useState<PulsaPackage | null>(null);
-  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+type PulsaSectionProps = {
+  /** Konfigurasi kategori/produk untuk drawer checkout. */
+  checkout: CheckoutCategory[];
+  /** Pengaturan QRIS dari admin (null -> pakai QR contoh). */
+  qris: QrisSettings | null;
+};
 
-  const activeOperator = useMemo(
-    () => operators.find((operator) => operator.id === activeOperatorId) ?? operators[0],
-    [activeOperatorId],
+/** Label produk di database berbentuk "Pulsa 10.000" -> ditampilkan sebagai nominal. */
+function nominalOf(label: string): string {
+  const match = label.match(/^pulsa\s*(.+)$/i);
+  return match ? `Rp ${match[1]}` : label;
+}
+
+function groupId(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
+
+export function PulsaSection({ checkout, qris }: PulsaSectionProps) {
+  const category = checkout.find((entry) => entry.id === "pulsa") ?? getCheckoutCategory("pulsa");
+  const groups = useMemo(
+    () => category.groups.filter((group) => group.items.length > 0),
+    [category],
   );
 
-  const closeModal = useCallback(() => setSelectedPackage(null), []);
+  const [activeGroupName, setActiveGroupName] = useState(groups[0]?.name ?? "");
+  const [selectedItem, setSelectedItem] = useState<CheckoutItem | null>(null);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  const activeGroup: CheckoutGroup | undefined =
+    groups.find((group) => group.name === activeGroupName) ?? groups[0];
+
+  const closeModal = useCallback(() => setSelectedItem(null), []);
 
   function handleTabKeyDown(event: React.KeyboardEvent<HTMLButtonElement>, index: number) {
-    const lastIndex = operators.length - 1;
+    const lastIndex = groups.length - 1;
     let nextIndex: number;
 
     if (event.key === "ArrowRight") nextIndex = index === lastIndex ? 0 : index + 1;
@@ -32,7 +54,7 @@ export function PulsaSection() {
     else return;
 
     event.preventDefault();
-    setActiveOperatorId(operators[nextIndex].id);
+    setActiveGroupName(groups[nextIndex].name);
     tabRefs.current[nextIndex]?.focus();
   }
 
@@ -56,22 +78,22 @@ export function PulsaSection() {
               aria-label="Pilih operator"
               className="flex flex-wrap items-center gap-2 text-[12px] font-semibold"
             >
-              {operators.map((operator, index) => {
-                const isActive = operator.id === activeOperatorId;
+              {groups.map((group, index) => {
+                const isActive = group.name === activeGroup?.name;
 
                 return (
                   <button
-                    key={operator.id}
+                    key={group.name}
                     ref={(element) => {
                       tabRefs.current[index] = element;
                     }}
                     type="button"
                     role="tab"
-                    id={`tab-${operator.id}`}
+                    id={`tab-${groupId(group.name)}`}
                     aria-selected={isActive}
-                    aria-controls={`panel-${operator.id}`}
+                    aria-controls={`panel-${groupId(group.name)}`}
                     tabIndex={isActive ? 0 : -1}
-                    onClick={() => setActiveOperatorId(operator.id)}
+                    onClick={() => setActiveGroupName(group.name)}
                     onKeyDown={(event) => handleTabKeyDown(event, index)}
                     className={cn(
                       "rounded-full px-3 py-1.5 transition",
@@ -79,7 +101,7 @@ export function PulsaSection() {
                     )}
                   >
                     {isActive ? "● " : ""}
-                    {operator.name}
+                    {group.name}
                   </button>
                 );
               })}
@@ -87,42 +109,45 @@ export function PulsaSection() {
           </div>
         </Reveal>
 
-        <div
-          id={`panel-${activeOperator.id}`}
-          role="tabpanel"
-          aria-labelledby={`tab-${activeOperator.id}`}
-          className="mt-6"
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.ul
-              key={activeOperator.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
-            >
-              {activeOperator.packages.map((pkg) => (
-                <li key={pkg.nominal} className="card relative p-4 text-center transition hover:shadow-md">
-                  {pkg.badge ? (
-                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-brand px-2 py-0.5 text-[9px] font-bold text-white">
-                      {pkg.badge}
-                    </span>
-                  ) : null}
-                  <p className="text-[15px] font-extrabold">{pkg.nominal}</p>
-                  <p className="mt-0.5 text-[11px] text-muted">{pkg.price}</p>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPackage(pkg)}
-                    className="mt-3 w-full rounded-full border border-brand py-1.5 text-[12px] font-bold text-brand transition hover:bg-brand hover:text-white"
-                  >
-                    Beli
-                  </button>
-                </li>
-              ))}
-            </motion.ul>
-          </AnimatePresence>
-        </div>
+        {activeGroup ? (
+          <div
+            id={`panel-${groupId(activeGroup.name)}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${groupId(activeGroup.name)}`}
+            className="mt-6"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.ul
+                key={activeGroup.name}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
+              >
+                {activeGroup.items.map((item) => (
+                  <li key={item.label} className="card relative p-4 text-center transition hover:shadow-md">
+                    <p className="text-[15px] font-extrabold">{nominalOf(item.label)}</p>
+                    <p className="mt-0.5 text-[11px] text-muted">
+                      {item.variable ? "Sesuai tagihan" : formatRupiah(item.price)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedItem(item)}
+                      className="mt-3 w-full rounded-full border border-brand py-1.5 text-[12px] font-bold text-brand transition hover:bg-brand hover:text-white"
+                    >
+                      Beli
+                    </button>
+                  </li>
+                ))}
+              </motion.ul>
+            </AnimatePresence>
+          </div>
+        ) : (
+          <p className="mt-6 rounded-2xl border border-dashed border-line-strong bg-surface-2 px-4 py-6 text-center text-[13px] text-muted">
+            Produk pulsa belum tersedia. Tambahkan lewat panel admin pada menu Produk.
+          </p>
+        )}
 
         <Reveal>
           <div className="card mt-3 flex items-center gap-3 bg-surface-3 p-4">
@@ -143,12 +168,12 @@ export function PulsaSection() {
       </div>
 
       <CheckoutDrawer
-        categoryId={selectedPackage ? "pulsa" : null}
-        initialGroup={selectedPackage ? activeOperator.name : null}
-        initialItem={
-          selectedPackage ? `Pulsa ${selectedPackage.nominal.replace(/^Rp\s*/, "")}` : null
-        }
+        categoryId={selectedItem ? "pulsa" : null}
+        initialGroup={selectedItem ? activeGroup?.name ?? null : null}
+        initialItem={selectedItem?.label ?? null}
         onClose={closeModal}
+        checkout={checkout}
+        qris={qris}
       />
     </section>
   );
