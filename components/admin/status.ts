@@ -34,5 +34,8 @@ export function formatDate(iso: string): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    // Zona waktu dipatok ke WIB. Tanpa ini, server (UTC di Vercel) dan browser
+    // menghasilkan teks berbeda sehingga React melaporkan hydration mismatch.
+    timeZone: "Asia/Jakarta",
   }).format(date);
 }
