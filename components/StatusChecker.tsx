@@ -250,7 +250,7 @@ export function StatusChecker() {
                 }}
                 aria-invalid={Boolean(error)}
                 aria-describedby={error ? "reference-feedback" : undefined}
-                placeholder="AD-8F4K2Q"
+                placeholder="AD-XXXXXX — contoh: AD-8F4K2Q, AD-2X9M4T, AD-5R1W7B, AD-6C3J9D"
                 className="readout min-w-0 flex-1 bg-transparent py-3 text-base font-semibold tracking-[0.04em] outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-hint sm:py-2.5"
               />
               {value ? (
@@ -298,8 +298,7 @@ export function StatusChecker() {
               error ? "font-semibold text-bad-ink" : "text-muted",
             )}
           >
-            {error ??
-              "Format referensi AD-XXXXXX. Contoh yang bisa dicoba: AD-8F4K2Q, AD-2X9M4T, AD-5R1W7B, AD-6C3J9D."}
+            {error}
           </p>
         </form>
 
