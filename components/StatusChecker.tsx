@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import {
   demoTransactions,
@@ -17,11 +18,11 @@ import type { OrderStatus } from "@/types";
 
 type Phase = "idle" | "loading" | "found" | "notfound";
 
-const tone: Record<TransactionState, { badge: string; dot: string; icon: string }> = {
-  success: { badge: "bg-ok-soft text-ok-ink", dot: "bg-[#15803d]", icon: "text-[#15803d]" },
-  processing: { badge: "bg-info-soft text-info-ink", dot: "bg-[#0e7490]", icon: "text-[#0e7490]" },
-  pending: { badge: "bg-warn-soft text-warn-ink", dot: "bg-[#b45309]", icon: "text-[#b45309]" },
-  failed: { badge: "bg-bad-soft text-bad-ink", dot: "bg-[#b91c1c]", icon: "text-[#b91c1c]" },
+const tone: Record<TransactionState, { badge: string; dot: string }> = {
+  success: { badge: "bg-ok-soft text-ok-ink", dot: "bg-ok-ink" },
+  processing: { badge: "bg-info-soft text-info-ink", dot: "bg-info-ink" },
+  pending: { badge: "bg-warn-soft text-warn-ink", dot: "bg-warn-ink" },
+  failed: { badge: "bg-bad-soft text-bad-ink", dot: "bg-bad-ink" },
 };
 
 const idMonths = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -34,6 +35,12 @@ function formatStamp(timestamp: number): string {
     date.getHours(),
   )}:${pad(date.getMinutes())}`;
 }
+
+const helpSteps = [
+  { title: "Struk digital", text: "Muncul otomatis setelah pembayaran, berformat AD-XXXXXX." },
+  { title: "Email konfirmasi", text: "Dikirim ke email terdaftar dalam 1 menit." },
+  { title: "Menu riwayat", text: "Buka riwayat transaksi, tap detail untuk menyalin referensi." },
+];
 
 type ApiOrder = {
   ref: string;
@@ -133,6 +140,7 @@ export function StatusChecker() {
   const [result, setResult] = useState<DemoTransaction | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const requestRef = useRef(0);
 
   async function lookup(rawRef: string) {
     const code = rawRef.trim().toUpperCase();
@@ -153,11 +161,17 @@ export function StatusChecker() {
     setResult(null);
     setPhase("loading");
 
+    // Abaikan hasil yang datang telat kalau user sudah memicu pencarian baru.
+    const requestId = requestRef.current + 1;
+    requestRef.current = requestId;
+
     const localInvoice = findInvoice(code);
     const found =
       (await fetchOrder(code)) ??
       demoTransactions.find((item) => item.ref === code) ??
       (localInvoice ? invoiceToTransaction(localInvoice) : null);
+
+    if (requestRef.current !== requestId) return;
 
     setResult(found);
     setPhase(found ? "found" : "notfound");
@@ -187,69 +201,109 @@ export function StatusChecker() {
   }
 
   return (
-    <section id="beranda" className="border-b border-line bg-surface-2">
-      <div className="wrap pt-11 pb-10 lg:pt-14">
-        <p className="readout text-[11px] tracking-[0.14em] text-muted uppercase">
-          Pelacakan Transaksi · Data langsung dari database pesanan
-        </p>
-        <h1 className="font-display mt-3 max-w-[15ch] text-[clamp(2.25rem,5.5vw,3.75rem)] leading-[1.06] font-semibold tracking-[-0.02em]">
+    <section id="beranda" className="relative overflow-hidden border-b border-line bg-surface-2">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-28 -right-20 h-64 w-64 rounded-full opacity-20 blur-3xl"
+        style={{ background: "radial-gradient(circle, var(--brand) 0%, transparent 70%)" }}
+      />
+
+      <div className="wrap relative pt-9 pb-9 sm:pt-12 sm:pb-11 lg:pt-14 lg:pb-14">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-surface px-3 py-1.5 text-[11.5px] font-bold text-muted">
+            <span className="status-pulse h-1.5 w-1.5 rounded-full bg-ok-ink" aria-hidden="true" />
+            Terhubung ke database pesanan
+          </span>
+          <span className="readout text-[10.5px] tracking-[0.16em] text-faint uppercase">
+            Lacak transaksi
+          </span>
+        </div>
+
+        <h1 className="font-display mt-4 text-[clamp(1.95rem,7vw,3.4rem)] leading-[1.05] font-semibold tracking-[-0.02em]">
           Cek Status Transaksi
         </h1>
-        <p className="mt-4 max-w-[68ch] text-[15px] leading-relaxed text-body">
-          Masukkan nomor referensi dari struk digital atau email konfirmasi untuk
-          melihat tahapan transaksi secara real-time.
+        <p className="mt-3 max-w-[60ch] text-[14.5px] leading-relaxed text-body sm:text-[15px]">
+          Masukkan nomor referensi dari struk digital atau email konfirmasi untuk melihat tahapan
+          transaksi secara real-time.
         </p>
 
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          className="mt-7 flex max-w-2xl flex-wrap items-center gap-2 rounded-2xl border border-line-strong bg-surface p-2 shadow-[0_1px_2px_rgba(28,25,23,0.06)] transition focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/25 sm:flex-nowrap sm:rounded-full"
-        >
-          <span className="pl-3 text-muted">
-            <Icon name="doc" />
-          </span>
-          <label htmlFor="reference" className="sr-only">
-            Nomor referensi transaksi
-          </label>
-          <input
-            id="reference"
-            name="reference"
-            type="text"
-            autoComplete="off"
-            spellCheck={false}
-            value={value}
-            onChange={(event) => {
-              setValue(event.target.value.toUpperCase());
-              if (error) setError(null);
-            }}
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? "reference-feedback" : "reference-hint"}
-            placeholder="AD-8F4K2Q"
-            className="readout min-w-0 flex-1 bg-transparent px-2 py-2.5 text-[15px] font-semibold outline-none placeholder:font-normal placeholder:text-hint"
-          />
-          <button
-            type="submit"
-            disabled={phase === "loading"}
-            className="cta flex w-full items-center justify-center gap-2 px-7 py-3 text-sm disabled:cursor-wait disabled:opacity-70 sm:w-auto"
+        <form onSubmit={handleSubmit} noValidate className="mt-6 sm:mt-7">
+          <div className="card flex flex-col gap-2 p-2 sm:flex-row sm:items-center sm:rounded-full sm:pl-4">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5 px-2 sm:px-0">
+              <Icon name="doc" className="h-[18px] w-[18px] shrink-0 text-faint" />
+              <label htmlFor="reference" className="sr-only">
+                Nomor referensi transaksi
+              </label>
+              <input
+                id="reference"
+                name="reference"
+                type="text"
+                inputMode="text"
+                autoCapitalize="characters"
+                autoComplete="off"
+                spellCheck={false}
+                enterKeyHint="search"
+                value={value}
+                onChange={(event) => {
+                  setValue(event.target.value.toUpperCase());
+                  if (error) setError(null);
+                }}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? "reference-feedback" : undefined}
+                placeholder="AD-8F4K2Q"
+                className="readout min-w-0 flex-1 bg-transparent py-3 text-base font-semibold tracking-[0.04em] outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-hint sm:py-2.5"
+              />
+              {value ? (
+                <button
+                  type="button"
+                  aria-label="Kosongkan nomor referensi"
+                  onClick={() => {
+                    setValue("");
+                    setError(null);
+                  }}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-surface-3 hover:text-ink"
+                >
+                  <Icon name="close" className="h-4 w-4" />
+                </button>
+              ) : null}
+            </div>
+
+            <button
+              type="submit"
+              disabled={phase === "loading"}
+              className="cta flex min-h-[48px] w-full items-center justify-center gap-2 px-6 text-[14.5px] disabled:cursor-wait disabled:opacity-70 sm:w-auto"
+            >
+              {phase === "loading" ? (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+                  />
+                  Menelusuri…
+                </>
+              ) : (
+                <>
+                  Cek Status
+                  <Icon name="arrow" className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </div>
+
+          <p
+            id="reference-feedback"
+            role={error ? "alert" : undefined}
+            className={cn(
+              "mt-2.5 min-h-[18px] px-1 text-[12.5px]",
+              error ? "font-semibold text-bad-ink" : "text-muted",
+            )}
           >
-            {phase === "loading" ? "Menelusuri…" : "Cek Status"}
-            <Icon name="arrow" className="h-4 w-4" />
-          </button>
+            {error ??
+              "Format referensi AD-XXXXXX. Contoh yang bisa dicoba: AD-8F4K2Q, AD-2X9M4T, AD-5R1W7B, AD-6C3J9D."}
+          </p>
         </form>
 
-        <p
-          id={error ? "reference-feedback" : "reference-hint"}
-          role={error ? "alert" : undefined}
-          className={cn(
-            "mt-2.5 min-h-[18px] text-[12.5px]",
-            error ? "font-semibold text-bad-ink" : "text-muted",
-          )}
-        >
-          {error ??
-            "Format referensi: AD-XXXXXX. Contoh yang bisa dicoba: AD-8F4K2Q, AD-2X9M4T, AD-5R1W7B, AD-6C3J9D."}
-        </p>
-
-        <div className="mt-6">
+        <div className="mt-5" aria-live="polite" aria-busy={phase === "loading"}>
           <AnimatePresence mode="wait">
             {phase === "idle" && !error ? (
               <motion.div
@@ -258,24 +312,24 @@ export function StatusChecker() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className="card p-6 sm:p-7"
+                className="card p-5 sm:p-6"
               >
-                <p className="text-[15px] font-extrabold">Di mana menemukan nomor referensi?</p>
-                <ul className="mt-4 grid gap-4 sm:grid-cols-3">
-                  {[
-                    { step: "Struk digital", text: "Muncul otomatis setelah pembayaran, berformat AD-XXXXXX." },
-                    { step: "Email konfirmasi", text: "Dikirim ke email terdaftar dalam 1 menit." },
-                    { step: "Menu Riwayat", text: "Buka riwayat transaksi, tap detail untuk menyalin referensi." },
-                  ].map((item, index) => (
-                    <li key={item.step} className="flex gap-3">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-soft text-[12px] font-extrabold text-brand-ink tabular-nums">
-                        {index + 1}
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-[15px] font-extrabold text-brand-ink">
+                    1
+                  </span>
+                  <p className="text-[14.5px] font-extrabold">Di mana menemukan nomor referensi?</p>
+                </div>
+
+                <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {helpSteps.map((item, index) => (
+                    <li key={item.title} className="rounded-2xl border border-line bg-surface-3 p-3.5">
+                      <span className="readout text-[11px] font-bold text-faint">
+                        {String(index + 1).padStart(2, "0")}
                       </span>
-                      <span>
-                        <span className="block text-[13px] font-bold">{item.step}</span>
-                        <span className="mt-0.5 block text-[12px] leading-relaxed text-muted">
-                          {item.text}
-                        </span>
+                      <span className="mt-1 block text-[13px] font-bold">{item.title}</span>
+                      <span className="mt-0.5 block text-[12px] leading-relaxed text-muted">
+                        {item.text}
                       </span>
                     </li>
                   ))}
@@ -290,14 +344,18 @@ export function StatusChecker() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="card p-6"
-                aria-live="polite"
+                className="card p-5 sm:p-6"
               >
-                <p className="text-[13px] font-bold text-body">Menelusuri referensi…</p>
-                <div className="mt-5 space-y-3" aria-hidden="true">
-                  <div className="h-4 w-1/3 animate-pulse rounded bg-surface-2" />
-                  <div className="h-4 w-2/3 animate-pulse rounded bg-surface-2" />
-                  <div className="h-20 w-full animate-pulse rounded-xl bg-surface-2" />
+                <p className="sr-only">Menelusuri referensi transaksi…</p>
+                <div className="space-y-3" aria-hidden="true">
+                  <div className="h-3.5 w-28 animate-pulse rounded bg-surface-2" />
+                  <div className="h-5 w-40 animate-pulse rounded bg-surface-2" />
+                  <div className="grid gap-2 sm:grid-cols-4">
+                    {[0, 1, 2, 3].map((index) => (
+                      <div key={index} className="h-14 animate-pulse rounded-xl bg-surface-2" />
+                    ))}
+                  </div>
+                  <div className="h-24 animate-pulse rounded-xl bg-surface-2" />
                 </div>
               </motion.div>
             ) : null}
@@ -315,48 +373,52 @@ export function StatusChecker() {
             {phase === "notfound" ? (
               <motion.div
                 key="notfound"
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="card p-6 sm:p-7"
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="card p-5 sm:p-6"
               >
-                <div className="flex items-start gap-4">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-bad-soft text-bad-ink">
+                <div className="flex items-start gap-3.5">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-bad-soft text-bad-ink">
                     <Icon name="alert" className="h-5 w-5" />
                   </span>
-                  <div>
-                    <p className="text-[15px] font-extrabold">
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-extrabold break-words">
                       Referensi {value.trim().toUpperCase()} tidak ditemukan
                     </p>
-                    <p className="mt-1.5 max-w-[58ch] text-[13px] leading-relaxed text-body">
-                      Pastikan tidak ada spasi atau karakter yang tertukar. Referensi selalu
-                      berawalan AD- dan bisa dilihat di menu Riwayat atau email konfirmasi.
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-body">
+                      Pastikan tidak ada spasi atau karakter yang tertukar. Referensi selalu berawalan
+                      AD- dan bisa dilihat di struk pembayaran atau email konfirmasi.
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-line pt-4">
-                  <span className="text-[12px] text-muted">Coba contoh:</span>
-                  {demoTransactions.map((item) => (
-                    <button
-                      key={item.ref}
-                      type="button"
-                      onClick={() => {
-                        setValue(item.ref);
-                        void lookup(item.ref);
-                      }}
-                    className="readout rounded-full border border-line-strong px-3 py-1.5 text-[12px] font-semibold transition hover:border-brand hover:text-brand-ink"
-                  >
-                    {item.ref}
-                  </button>
-                  ))}
+                <div className="mt-5 border-t border-line pt-4">
+                  <p className="text-[12px] text-muted">Coba contoh referensi:</p>
+                  <ul className="mt-2.5 flex flex-wrap gap-2">
+                    {demoTransactions.map((item) => (
+                      <li key={item.ref}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setValue(item.ref);
+                            void lookup(item.ref);
+                          }}
+                          className="readout flex min-h-[44px] items-center rounded-full border border-line-strong px-4 text-[12.5px] font-semibold transition hover:border-brand hover:text-brand-ink"
+                        >
+                          {item.ref}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                   <button
                     type="button"
                     onClick={reset}
-                    className="ml-auto text-[12.5px] font-semibold text-brand-ink transition hover:text-brand"
+                    className="mt-3 flex min-h-[44px] items-center gap-1.5 text-[12.5px] font-semibold text-brand-ink transition hover:text-brand"
                   >
                     Cari referensi lain
+                    <Icon name="arrow" className="h-4 w-4" />
                   </button>
                 </div>
               </motion.div>
@@ -375,16 +437,16 @@ type ResultCardProps = {
   onReset: () => void;
 };
 
-function ResultCard({
-  transaction,
-  copied,
-  onCopy,
-  onReset,
-}: ResultCardProps) {
+function ResultCard({ transaction, copied, onCopy, onReset }: ResultCardProps) {
   const colors = tone[transaction.state];
+  const isSuccess = transaction.state === "success";
+  const progress = Math.min(
+    100,
+    Math.round(((isSuccess ? 3 : Math.min(transaction.stepIndex, 3)) / 3) * 100),
+  );
 
   const details = [
-    { label: "Layanan", value: transaction.service },
+    { label: "Layanan", value: transaction.service, wide: true },
     { label: "Nomor Tujuan", value: transaction.target, numeric: true },
     { label: "Nominal", value: transaction.amount, numeric: true },
     { label: "Metode", value: transaction.method },
@@ -395,108 +457,112 @@ function ResultCard({
   return (
     <motion.div
       key={transaction.ref}
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       className="card overflow-hidden"
     >
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-5 py-5 sm:px-7">
-        <div>
-          <p className="text-[12px] text-muted">Nomor Referensi</p>
-          <p className="readout mt-1 text-xl font-semibold tracking-[0.04em]">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-4 py-4 sm:px-6 sm:py-5">
+        <div className="min-w-0">
+          <p className="text-[11.5px] text-muted">Nomor Referensi</p>
+          <p className="readout mt-1 text-lg font-semibold tracking-[0.04em] break-all sm:text-xl">
             {transaction.ref}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex flex-wrap items-center gap-2">
           <span
             className={cn(
               "inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] font-bold",
               colors.badge,
             )}
           >
-            <span className={cn("h-1.5 w-1.5 rounded-full", colors.dot)} />
+            <span className={cn("h-1.5 w-1.5 rounded-full", colors.dot)} aria-hidden="true" />
             {stateLabels[transaction.state]}
           </span>
           <button
             type="button"
             onClick={() => onCopy(transaction.ref)}
-            className="rounded-full border border-line-strong px-3.5 py-1.5 text-[12px] font-semibold transition hover:border-brand hover:text-brand-ink"
+            aria-label={`Salin nomor referensi ${transaction.ref}`}
+            className="flex min-h-[44px] items-center gap-1.5 rounded-full border border-line-strong px-4 text-[12.5px] font-semibold transition hover:border-brand hover:text-brand-ink"
           >
+            <Icon name={copied ? "check" : "doc"} className="h-3.5 w-3.5" />
             {copied ? "Tersalin" : "Salin"}
           </button>
         </div>
       </div>
 
-      <div className="px-5 py-6 sm:px-7">
-        <ol className="grid gap-5 sm:grid-cols-4 sm:gap-0">
+      <div className="h-1 w-full bg-line" aria-hidden="true">
+        <div
+          className="h-full origin-left bg-brand transition-transform duration-500"
+          style={{ transform: `scaleX(${progress / 100})` }}
+        />
+      </div>
+
+      <div className="px-4 py-5 sm:px-6 sm:py-6">
+        <p className="text-[11.5px] tracking-wide text-muted uppercase">Tahapan transaksi</p>
+
+        <ol className="mt-3 grid gap-2.5 sm:grid-cols-4">
           {transactionSteps.map((step, index) => {
-            const isDone =
-              index < transaction.stepIndex || transaction.state === "success";
-            const isCurrent = index === transaction.stepIndex && !isDone;
+            const isDone = index < transaction.stepIndex || isSuccess;
+            const isCurrent = index === transaction.stepIndex && !isDone && !isSuccess;
             const isFailed = index === transaction.stepIndex && transaction.state === "failed";
-            const isLast = index === transactionSteps.length - 1;
 
             return (
-              <li key={step} className="relative flex gap-3 sm:block">
-                {isLast ? null : (
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "absolute top-6 left-[11px] w-px sm:top-[11px] sm:left-6 sm:h-px sm:w-full",
-                      isDone ? "bg-[#15803d]/50" : "bg-line-strong",
-                    )}
-                  />
+              <li
+                key={step}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl border px-3.5 py-3 sm:flex-col sm:items-start sm:gap-2",
+                  isFailed
+                    ? "border-bad-ink/25 bg-bad-soft"
+                    : isCurrent
+                      ? "border-info-ink/25 bg-info-soft"
+                      : isDone
+                        ? "border-ok-ink/20 bg-ok-soft"
+                        : "border-line bg-surface-3",
                 )}
+              >
                 <span
-                  aria-hidden="true"
                   className={cn(
-                    "relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-white",
-                    isDone && "border-[#15803d] bg-[#15803d]",
-                    isCurrent && "border-[#0e7490] bg-surface",
-                    isFailed && "border-[#b91c1c] bg-[#b91c1c]",
-                    !isDone && !isCurrent && !isFailed && "border-line-strong bg-surface",
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold",
+                    isFailed
+                      ? "bg-bad-ink text-white"
+                      : isDone
+                        ? "bg-ok-ink text-white"
+                        : isCurrent
+                          ? "bg-info-ink text-white"
+                          : "bg-line-strong text-muted",
                   )}
                 >
                   {isDone ? (
-                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" aria-hidden="true">
-                      <path
-                        d="m5 12.5 4.5 4.5L19 7.5"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  ) : null}
-                  {isFailed ? (
-                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" aria-hidden="true">
-                      <path
-                        d="M6 6l12 12M18 6L6 18"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  ) : null}
+                    <Icon name="check" className="h-3.5 w-3.5" />
+                  ) : (
+                    <span className="readout">{index + 1}</span>
+                  )}
                 </span>
-                <div className="sm:mt-3 sm:pr-5">
-                  <p
+
+                <span className="min-w-0">
+                  <span
                     className={cn(
-                      "text-[12.5px] leading-tight font-bold",
-                      isCurrent && "text-info-ink",
+                      "block text-[12.5px] leading-snug font-bold",
                       isFailed && "text-bad-ink",
+                      isCurrent && "text-info-ink",
                       !isDone && !isCurrent && !isFailed && "text-muted",
                     )}
                   >
                     {step}
-                  </p>
-                  {isDone || isFailed ? (
-                    <p className="readout mt-0.5 text-[11px] text-muted">
-                      {isFailed ? transaction.updatedAt : transaction.createdAt}
-                    </p>
-                  ) : null}
-                </div>
+                  </span>
+                  <span className="readout mt-0.5 block text-[11px] text-muted">
+                    {isDone
+                      ? transaction.createdAt
+                      : isFailed
+                        ? transaction.updatedAt
+                        : isCurrent
+                          ? "Sedang berjalan"
+                          : "Menunggu"}
+                  </span>
+                </span>
               </li>
             );
           })}
@@ -504,30 +570,27 @@ function ResultCard({
 
         <div
           className={cn(
-            "mt-6 flex items-start gap-3 rounded-xl px-4 py-3.5",
+            "mt-4 flex items-start gap-3 rounded-xl px-4 py-3.5",
             transaction.state === "failed"
               ? "bg-bad-soft text-bad-ink"
-              : transaction.state === "success"
+              : isSuccess
                 ? "bg-ok-soft text-ok-ink"
                 : "bg-info-soft text-info-ink",
           )}
         >
-          <span className="mt-0.5 shrink-0">
-            <Icon
-              name={transaction.state === "failed" ? "alert" : "check"}
-              className="h-[18px] w-[18px]"
-            />
+          <span className="mt-0.5 shrink-0" aria-hidden="true">
+            <Icon name={transaction.state === "failed" ? "alert" : "check"} className="h-[18px] w-[18px]" />
           </span>
           <p className="text-[13px] leading-relaxed">{transaction.note}</p>
         </div>
 
-        <dl className="mt-6 grid gap-x-8 gap-y-4 border-t border-line pt-5 sm:grid-cols-2 lg:grid-cols-3">
+        <dl className="mt-6 grid gap-x-8 gap-y-3.5 border-t border-line pt-5 sm:grid-cols-2 lg:grid-cols-3">
           {details.map((detail) => (
-            <div key={detail.label}>
-              <dt className="text-[11px] tracking-wide text-muted uppercase">{detail.label}</dt>
+            <div key={detail.label} className="min-w-0">
+              <dt className="text-[10.5px] tracking-wide text-muted uppercase">{detail.label}</dt>
               <dd
                 className={cn(
-                  "mt-1 text-[13.5px] font-bold text-ink",
+                  "mt-1 text-[13.5px] font-bold break-words text-ink",
                   detail.numeric && "readout font-semibold",
                 )}
               >
@@ -537,17 +600,22 @@ function ResultCard({
           ))}
         </dl>
 
-        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-4 text-[12.5px]">
+        <div className="mt-6 flex flex-col gap-2.5 border-t border-line pt-4 sm:flex-row sm:items-center">
+          <Link
+            href="/bantuan#kontak"
+            className="cta flex min-h-[48px] items-center justify-center gap-2 px-5 text-[13.5px] sm:min-h-[44px]"
+          >
+            <Icon name="chat" className="h-4 w-4" />
+            Transaksi bermasalah? Hubungi kami
+          </Link>
           <button
             type="button"
             onClick={onReset}
-            className="font-semibold text-brand-ink transition hover:text-brand"
+            className="flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-line-strong px-5 text-[13.5px] font-bold text-body transition hover:border-brand hover:text-brand-ink sm:min-h-[44px]"
           >
+            <Icon name="search" className="h-4 w-4" />
             Cek transaksi lain
           </button>
-          <a href="/bantuan#kontak" className="font-semibold text-body transition hover:text-ink">
-            Transaksi bermasalah? Hubungi kami
-          </a>
         </div>
       </div>
     </motion.div>

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Icon } from "@/components/Icon";
-import { ServiceStatus } from "@/components/ServiceStatus";
 import { StatusChecker } from "@/components/StatusChecker";
 import { siteConfig } from "@/data/site";
 
 export const metadata: Metadata = {
   title: "Cek Status Transaksi",
   description:
-    "Lacak status transaksi Aurevia Digital dengan nomor referensi AD-XXXXXX dan pantau kondisi terkini seluruh sistem pembayaran secara real-time.",
+    "Lacak status transaksi Aurevia Digital dengan nomor referensi AD-XXXXXX: lihat tahapan, nominal, dan waktu pembaruan terakhirnya secara real-time.",
   alternates: { canonical: "/status" },
   openGraph: {
     type: "website",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: "Cek Status Transaksi Aurevia Digital",
     description:
-      "Lacak tahapan transaksi dan kondisi sistem Aurevia Digital hanya dengan nomor referensi.",
+      "Lacak tahapan transaksi Aurevia Digital hanya dengan nomor referensi AD-XXXXXX.",
   },
   robots: { index: true, follow: true },
 };
@@ -25,22 +25,32 @@ export default function StatusPage() {
   return (
     <>
       <StatusChecker />
-      <ServiceStatus />
 
-      <section className="pb-14 pt-4">
+      <section className="py-10 sm:py-12">
         <div className="wrap">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
-            <p className="max-w-[54ch] text-[13px] leading-relaxed text-body">
-              Status tidak berubah juga setelah 10 menit? Sertakan nomor referensi saat
-              menghubungi kami agar penelusuran lebih cepat.
-            </p>
-            <a
+          <div className="card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="flex items-start gap-3.5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft text-brand-ink">
+                <Icon name="chat" className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[14.5px] font-extrabold">
+                  Status tidak berubah setelah 10 menit?
+                </p>
+                <p className="mt-1 max-w-[54ch] text-[13px] leading-relaxed text-body">
+                  Sertakan nomor referensi saat menghubungi kami agar penelusuran tidak perlu
+                  bolak-balik.
+                </p>
+              </div>
+            </div>
+
+            <Link
               href="/bantuan"
-              className="inline-flex items-center gap-2 rounded-full border border-line-strong px-5 py-2.5 text-[13px] font-bold transition hover:border-brand hover:text-brand-ink"
+              className="flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-full border border-line-strong px-5 text-[13px] font-bold transition hover:border-brand hover:text-brand-ink"
             >
               Pusat Bantuan
               <Icon name="arrow" className="h-4 w-4" />
-            </a>
+            </Link>
           </div>
         </div>
       </section>

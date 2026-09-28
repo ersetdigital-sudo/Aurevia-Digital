@@ -1,13 +1,3 @@
-export type SystemState = "operational" | "degraded" | "outage" | "maintenance";
-
-export type SystemStatus = {
-  name: string;
-  description: string;
-  state: SystemState;
-  uptime: string;
-  checked: string;
-};
-
 export type TransactionState = "success" | "processing" | "pending" | "failed";
 
 export type DemoTransaction = {
@@ -30,56 +20,11 @@ export const transactionSteps = [
   "Selesai",
 ];
 
-export const systemStatuses: SystemStatus[] = [
-  {
-    name: "Gateway Pembayaran",
-    description: "Virtual account, e-wallet, kartu",
-    state: "operational",
-    uptime: "99,98%",
-    checked: "2 menit lalu",
-  },
-  {
-    name: "Pulsa & Paket Data",
-    description: "Semua operator seluler",
-    state: "operational",
-    uptime: "99,95%",
-    checked: "2 menit lalu",
-  },
-  {
-    name: "Token & Tagihan PLN",
-    description: "Prabayar dan pascabayar",
-    state: "operational",
-    uptime: "99,91%",
-    checked: "3 menit lalu",
-  },
-  {
-    name: "PDAM, BPJS & Internet",
-    description: "Tagihan bulanan mitra resmi",
-    state: "degraded",
-    uptime: "98,74%",
-    checked: "2 menit lalu",
-  },
-  {
-    name: "Top Up E-Wallet",
-    description: "GoPay, OVO, DANA, ShopeePay",
-    state: "operational",
-    uptime: "99,99%",
-    checked: "4 menit lalu",
-  },
-];
-
 export const stateLabels: Record<TransactionState, string> = {
   success: "Selesai",
   processing: "Sedang Diproses",
   pending: "Menunggu Pembayaran",
   failed: "Gagal",
-};
-
-export const systemStateLabels: Record<SystemState, string> = {
-  operational: "Operasional",
-  degraded: "Terbatas",
-  outage: "Gangguan",
-  maintenance: "Pemeliharaan",
 };
 
 export const demoTransactions: DemoTransaction[] = [
