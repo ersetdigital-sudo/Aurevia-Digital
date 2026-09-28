@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Icon } from "@/components/Icon";
 import { LogoMark } from "@/components/Logo";
 import { Reveal } from "@/components/Reveal";
@@ -13,6 +14,12 @@ export function Terms() {
     <>
       <section className="border-b border-line bg-surface-2">
         <div className="wrap pt-11 pb-10 lg:pt-14">
+          <Breadcrumbs
+            items={[
+              { label: "Beranda", href: "/" },
+              { label: "Syarat & Ketentuan" },
+            ]}
+          />
           <p className="eyebrow flex items-center gap-1.5">
             <LogoMark className="h-4 w-4" />
             Legal

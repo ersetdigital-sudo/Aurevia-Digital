@@ -2,6 +2,7 @@ import type { LegalSection } from "@/types";
 
 export const termsMeta = {
   effectiveDate: "28 September 2026",
+  lastUpdated: "2026-09-28",
   version: "1.0",
 };
 
