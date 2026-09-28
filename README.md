@@ -25,11 +25,12 @@ Buka http://localhost:3000
 
 | Variabel | Dipakai untuk |
 | -------- | ------------- |
-| `SITE_URL` | Metadata SEO, sitemap, robots.txt |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Baca katalog & pengaturan (RLS: hanya baris aktif) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Tulis pesanan/pesan + seluruh API admin (server-only) |
 | `ADMIN_PASSWORD` | Login panel admin (juga jadi kunci tanda tangan cookie sesi) |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `CLOUDINARY_UPLOAD_PRESET` | Upload gambar produk & QRIS (signed upload dari server) |
+
+Base URL situs tidak perlu diisi: `data/site.ts` menghitungnya otomatis dari `VERCEL_PROJECT_PRODUCTION_URL`/`VERCEL_URL` (disediakan Vercel) dan `http://localhost:3000` di lokal, jadi domain kustom yang baru dipasang langsung ikut terpakai di sitemap, robots, dan JSON-LD.
 
 Isi tabel `categories`, `products`, `orders`, `messages`, `settings` dengan menjalankan `supabase/schema.sql` di SQL Editor Supabase.
 
@@ -42,8 +43,8 @@ Isi tabel `categories`, `products`, `orders`, `messages`, `settings` dengan menj
 
 ## Checklist deploy Vercel
 
-1. Isi 9 variabel env di Project → Settings → Environment Variables untuk **Production** dan **Preview** (daftar lengkap di tabel environment di atas). Tanpa `SUPABASE_SERVICE_ROLE_KEY` panel admin tidak bisa login, tanpa kredensial Cloudinary upload gambar mati, dan tanpa `ADMIN_PASSWORD` sesi admin tidak bisa dibuat.
-2. Pasang domain produksi di Project → Settings → Domains lalu arahkan DNS ke Vercel. `SITE_URL` harus sama dengan domain itu (`https://aureviadigital.net`) supaya sitemap, robots, dan JSON-LD tidak menunjuk domain lain.
+1. Isi 8 variabel env di Project → Settings → Environment Variables untuk **Production** dan **Preview** (daftar lengkap di tabel environment di atas). Tanpa `SUPABASE_SERVICE_ROLE_KEY` panel admin tidak bisa login, tanpa kredensial Cloudinary upload gambar mati, dan tanpa `ADMIN_PASSWORD` sesi admin tidak bisa dibuat.
+2. Pasang domain produksi di Project → Settings → Domains lalu arahkan DNS ke Vercel. URL di sitemap, robots, dan JSON-LD ikut menyesuaikan otomatis, tidak ada env yang perlu diubah.
 3. Jalankan `supabase/schema.sql` di SQL Editor Supabase sekali, lalu `npm run seed -- --apply` untuk mengisi katalog awal.
 4. Mengubah env var hanya berpengaruh setelah deployment berikutnya — picu redeploy (push commit atau Redeploy dari dashboard) setelah menambah/mengubah env.
 5. Setelah deploy, cek cepat: `/admin/login` harus 200, login admin berhasil, dan upload gambar di menu Produk berjalan.
