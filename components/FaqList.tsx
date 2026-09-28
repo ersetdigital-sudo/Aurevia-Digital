@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Icon } from "@/components/Icon";
 import type { FaqItem } from "@/data/help";
 import { cn } from "@/lib/cn";
@@ -13,7 +13,6 @@ type FaqListProps = {
 
 export function FaqList({ items, query }: FaqListProps) {
   const [openId, setOpenId] = useState<string | null>(items[0]?.id ?? null);
-  const prefersReducedMotion = useReducedMotion();
 
   if (items.length === 0) {
     return (
@@ -72,9 +71,9 @@ export function FaqList({ items, query }: FaqListProps) {
               {isOpen ? (
                 <motion.div
                   id={`faq-${item.id}`}
-                  initial={prefersReducedMotion ? false : { height: 0, opacity: 0 }}
+                  initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
-                  exit={prefersReducedMotion ? undefined : { height: 0, opacity: 0 }}
+                  exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                   className="overflow-hidden"
                 >

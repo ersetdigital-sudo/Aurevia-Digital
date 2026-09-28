@@ -25,3 +25,4 @@ dev.log
 
 # arsip HTML asli (bukan bagian project)
 reference/
+.vercel

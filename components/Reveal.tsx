@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 type RevealProps = {
@@ -9,13 +9,18 @@ type RevealProps = {
   delay?: number;
 };
 
+/**
+ * Scroll-reveal wrapper.
+ *
+ * Penting: komponen ini harus merender elemen yang SAMA di server dan client
+ * (selalu `motion.div`). Dulu ada cabang `useReducedMotion()` yang bikin server
+ * render `motion.div` (opacity:0) sedangkan client render `<div>` biasa saat
+ * sistem aktifkan "reduce motion" -> hydration mismatch -> style opacity:0
+ * menempel selamanya dan konten tak pernah muncul (halaman kosong).
+ * Preferensi reduced motion kini ditangani global lewat `MotionConfig`
+ * di `app/layout.tsx`.
+ */
 export function Reveal({ children, className, delay = 0 }: RevealProps) {
-  const prefersReducedMotion = useReducedMotion();
-
-  if (prefersReducedMotion) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
     <motion.div
       className={className}

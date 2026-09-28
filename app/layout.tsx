@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { MotionConfig } from "framer-motion";
 import "./globals.css";
 import { fraunces, plexMono, plusJakartaSans } from "./fonts";
 import { Footer } from "@/components/Footer";
@@ -74,9 +75,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="font-sans antialiased">
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <IconSprite />
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <MotionConfig reducedMotion="user">
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </MotionConfig>
         <JsonLd />
       </body>
     </html>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { QrisCode } from "@/components/QrisCode";
@@ -113,7 +113,6 @@ function CheckoutPanel({ categoryId, initialGroup, initialItem, onClose }: Check
   const [errorTarget, setErrorTarget] = useState(false);
   const [errorItem, setErrorItem] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 120);
@@ -260,9 +259,9 @@ function CheckoutPanel({ categoryId, initialGroup, initialItem, onClose }: Check
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={step}
-            initial={{ opacity: 0, x: prefersReducedMotion ? 0 : stepDirection * 16 }}
+            initial={{ opacity: 0, x: stepDirection * 16 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: prefersReducedMotion ? 0 : stepDirection * -12 }}
+            exit={{ opacity: 0, x: stepDirection * -12 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
           >
             {step === 1 ? (

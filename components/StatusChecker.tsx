@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Icon } from "@/components/Icon";
 import {
   demoTransactions,
@@ -56,7 +56,6 @@ export function StatusChecker() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<number | null>(null);
-  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     return () => {
@@ -185,7 +184,7 @@ export function StatusChecker() {
             {phase === "idle" && !error ? (
               <motion.div
                 key="idle"
-                initial={prefersReducedMotion ? false : { opacity: 0 }}
+                initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
@@ -217,7 +216,7 @@ export function StatusChecker() {
             {phase === "loading" ? (
               <motion.div
                 key="loading"
-                initial={prefersReducedMotion ? false : { opacity: 0 }}
+                initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
@@ -240,14 +239,13 @@ export function StatusChecker() {
                 copied={copied}
                 onCopy={copyRef}
                 onReset={reset}
-                prefersReducedMotion={Boolean(prefersReducedMotion)}
               />
             ) : null}
 
             {phase === "notfound" ? (
               <motion.div
                 key="notfound"
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
@@ -303,7 +301,6 @@ export function StatusChecker() {
 type ResultCardProps = {
   transaction: DemoTransaction;
   copied: boolean;
-  prefersReducedMotion: boolean;
   onCopy: (ref: string) => void;
   onReset: () => void;
 };
@@ -311,7 +308,6 @@ type ResultCardProps = {
 function ResultCard({
   transaction,
   copied,
-  prefersReducedMotion,
   onCopy,
   onReset,
 }: ResultCardProps) {
@@ -329,7 +325,7 @@ function ResultCard({
   return (
     <motion.div
       key={transaction.ref}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
