@@ -59,6 +59,16 @@ npm run seed -- --apply --reset   # hapus katalog lama lalu tulis ulang
 
 Setelah tersimpan, semua isi katalog bisa diedit dari panel admin tanpa deploy ulang.
 
+### Pesanan demo untuk uji tampilan admin
+
+```bash
+npm run seed:orders                    # pratinjau 12 pesanan demo
+npm run seed:orders -- --apply         # tulis ke Supabase
+npm run seed:orders -- --apply --reset-only   # hapus lagi pesanan demo
+```
+
+Semua baris demo ditandai `note = "Data demo"`, jadi bisa dibersihkan kapan saja tanpa menyentuh pesanan asli. Pesanan asli dari checkout punya nomor referensi acak (`AD-XXXXXX`), sedangkan yang demo memakai pola `AD-DEMO01`…`AD-DEMO12` dan bisa dicoba langsung di halaman `/status`.
+
 ## Struktur
 
 ```

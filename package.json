@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "seed": "node --import ./scripts/ts-paths.mjs scripts/seed-catalog.ts"
+    "seed": "node --import ./scripts/ts-paths.mjs scripts/seed-catalog.ts",
+    "seed:orders": "node --import ./scripts/ts-paths.mjs scripts/seed-orders.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

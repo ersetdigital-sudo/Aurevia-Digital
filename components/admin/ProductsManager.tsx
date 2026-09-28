@@ -193,38 +193,40 @@ export function ProductsManager({ categories, products }: Props) {
         {categories.map((category) => {
           const count = products.filter((product) => product.category_id === category.id).length;
           return (
-            <button
+            <div
               key={category.id}
-              type="button"
-              onClick={() => setCategoryFilter(category.id)}
               className="adm-card adm-card-pad"
               style={{
-                textAlign: "left",
-                cursor: "pointer",
-                borderColor:
-                  categoryFilter === category.id ? "var(--clay)" : "var(--line)",
-                boxShadow:
-                  categoryFilter === category.id ? "0 0 0 3px var(--clay-bg)" : undefined,
+                borderColor: categoryFilter === category.id ? "var(--clay)" : "var(--line)",
+                boxShadow: categoryFilter === category.id ? "0 0 0 3px var(--clay-bg)" : undefined,
               }}
             >
-              <div className="flex items-center justify-between gap-2">
-                <span className="tile shrink-0" style={{ width: 36, height: 36, borderRadius: 10 }}>
-                  <Icon name={category.icon as never} className="h-[17px] w-[17px]" />
+              {/* Tombol pilih kategori dipisah dari tombol Ubah supaya tidak ada
+                  elemen interaktif bersarang dan keduanya bisa diakses keyboard. */}
+              <button
+                type="button"
+                onClick={() => setCategoryFilter(category.id)}
+                aria-pressed={categoryFilter === category.id}
+                className="adm-cat-pick"
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <span className="tile shrink-0" style={{ width: 36, height: 36, borderRadius: 10 }}>
+                    <Icon name={category.icon as never} className="h-[17px] w-[17px]" />
+                  </span>
+                  <span className="badge badge-mute">{count} produk</span>
                 </span>
-                <span className="badge badge-mute">{count} produk</span>
-              </div>
-              <p className="mt-3 text-[14px] font-bold">{category.name}</p>
-              <p className="text-[11.5px] text-[color:var(--mute)]">/{category.slug}</p>
-              <div className="mt-3 flex gap-2">
-                <span
-                  className={`badge ${category.active ? "badge-ok" : "badge-mute"}`}
-                >
+                <span className="mt-3 block text-[14px] font-bold">{category.name}</span>
+                <span className="block text-[11.5px] text-[color:var(--mute)]">/{category.slug}</span>
+              </button>
+
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <span className={`badge ${category.active ? "badge-ok" : "badge-mute"}`}>
                   {category.active ? "Aktif" : "Nonaktif"}
                 </span>
-                <span
+                <button
+                  type="button"
                   className="btn btn-quiet btn-sm"
-                  onClick={(event) => {
-                    event.stopPropagation();
+                  onClick={() =>
                     setCategoryDraft({
                       id: category.id,
                       name: category.name,
@@ -239,13 +241,13 @@ export function ProductsManager({ categories, products }: Props) {
                       admin_fee: category.admin_fee,
                       sort: category.sort,
                       active: category.active,
-                    });
-                  }}
+                    })
+                  }
                 >
                   Ubah
-                </span>
+                </button>
               </div>
-            </button>
+            </div>
           );
         })}
       </section>

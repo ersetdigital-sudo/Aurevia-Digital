@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Icon } from "@/components/Icon";
 import { LogoMark } from "@/components/Logo";
@@ -9,29 +9,35 @@ import { LogoMark } from "@/components/Logo";
 export default function AdminLoginPage() {
   const router = useRouter();
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy || !password) return;
+
     setBusy(true);
     setError(null);
+
     try {
       const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
+
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         setError(data.error ?? "Login gagal, coba lagi.");
+        setBusy(false);
         return;
       }
+
       router.replace("/admin");
       router.refresh();
     } catch {
-      setError("Tidak bisa terhubung ke server. Coba lagi.");
-    } finally {
+      setError("Tidak bisa terhubung ke server. Periksa koneksi lalu coba lagi.");
       setBusy(false);
     }
   }
@@ -39,62 +45,94 @@ export default function AdminLoginPage() {
   return (
     <div className="admin adm-login">
       <form onSubmit={handleSubmit} className="adm-card adm-login-card">
-        <div className="flex items-center gap-3">
-          <LogoMark className="h-10 w-10" />
-          <div>
+        <div className="adm-login-brand">
+          <LogoMark className="h-11 w-11" />
+          <div className="min-w-0">
             <p className="adm-brand-name">Aurevia Digital</p>
             <p className="adm-brand-sub">Panel Admin</p>
           </div>
         </div>
 
-        <h1
-          className="mt-6"
-          style={{
-            fontFamily: "var(--font-fraunces), Georgia, serif",
-            fontSize: 24,
-            fontWeight: 600,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Masuk dashboard
-        </h1>
-        <p className="adm-hint" style={{ marginTop: 6 }}>
-          Gunakan password admin yang terdaftar di environment variable.
+        <h1 className="adm-login-title">Masuk dashboard</h1>
+        <p className="adm-login-sub">
+          Kelola katalog, pesanan, pesan masuk, dan pengaturan QRIS dari satu tempat.
         </p>
 
-        <div style={{ marginTop: 20 }}>
+        <div className="adm-login-field">
           <label className="adm-label" htmlFor="admin-password">
             Password admin
           </label>
-          <input
-            id="admin-password"
-            type="password"
-            className="adm-input"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="••••••••"
-            autoFocus
-          />
+
+          <div className="adm-login-input">
+            <Icon name="lock" />
+            <input
+              id="admin-password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              className="adm-input adm-login-password"
+              autoComplete="current-password"
+              autoFocus
+              required
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                if (error) setError(null);
+              }}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "admin-login-error" : "admin-login-hint"}
+              placeholder="Masukkan password"
+            />
+            <button
+              type="button"
+              className="adm-login-toggle"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-pressed={showPassword}
+              aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+              tabIndex={-1}
+            >
+              <Icon name={showPassword ? "eyeOff" : "eye"} className="h-[17px] w-[17px]" />
+            </button>
+          </div>
+
           {error ? (
-            <p className="adm-hint" style={{ color: "var(--bad)", fontWeight: 700 }}>
+            <p id="admin-login-error" role="alert" className="adm-login-alert">
+              <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0" />
               {error}
             </p>
-          ) : null}
+          ) : (
+            <p id="admin-login-hint" className="adm-hint">
+              Password diambil dari environment variable <code>ADMIN_PASSWORD</code>.
+            </p>
+          )}
         </div>
 
-        <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: 18 }} disabled={busy || !password}>
-          <Icon name={busy ? "clock" : "arrow"} className="h-4 w-4" />
-          {busy ? "Memeriksa…" : "Masuk"}
+        <button type="submit" className="btn btn-primary adm-login-submit" disabled={busy || !password}>
+          {busy ? (
+            <>
+              <span
+                aria-hidden="true"
+                className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+              />
+              Memeriksa…
+            </>
+          ) : (
+            <>
+              Masuk
+              <Icon name="arrow" className="h-4 w-4" />
+            </>
+          )}
         </button>
 
-        <Link
-          href="/"
-          className="adm-hint"
-          style={{ display: "block", marginTop: 16, textAlign: "center" }}
-        >
-          ← Kembali ke situs
-        </Link>
+        <div className="adm-login-meta">
+          <span>
+            <Icon name="clock" className="h-[15px] w-[15px]" />
+            Sesi aktif 12 jam
+          </span>
+          <Link href="/">
+            <Icon name="arrow" className="h-[15px] w-[15px]" />
+            Kembali ke situs
+          </Link>
+        </div>
       </form>
     </div>
   );
