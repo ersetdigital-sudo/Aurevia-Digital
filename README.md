@@ -40,6 +40,14 @@ Isi tabel `categories`, `products`, `orders`, `messages`, `settings` dengan menj
 - Halaman depan mengambil kategori/produk dari Supabase (`lib/catalog.ts`). Kalau tabel masih kosong atau gagal diambil, situs otomatis memakai data statis di `data/` supaya tidak pernah blank.
 - Pesanan dari checkout disimpan ke Supabase lewat `POST /api/orders`; halaman `/status` membaca ulang lewat `GET /api/orders/[ref]`.
 
+## Checklist deploy Vercel
+
+1. Isi 9 variabel env di Project → Settings → Environment Variables untuk **Production** dan **Preview** (daftar lengkap di tabel environment di atas). Tanpa `SUPABASE_SERVICE_ROLE_KEY` panel admin tidak bisa login, tanpa kredensial Cloudinary upload gambar mati, dan tanpa `ADMIN_PASSWORD` sesi admin tidak bisa dibuat.
+2. Pasang domain produksi di Project → Settings → Domains lalu arahkan DNS ke Vercel. `SITE_URL` harus sama dengan domain itu (`https://aureviadigital.net`) supaya sitemap, robots, dan JSON-LD tidak menunjuk domain lain.
+3. Jalankan `supabase/schema.sql` di SQL Editor Supabase sekali, lalu `npm run seed -- --apply` untuk mengisi katalog awal.
+4. Mengubah env var hanya berpengaruh setelah deployment berikutnya — picu redeploy (push commit atau Redeploy dari dashboard) setelah menambah/mengubah env.
+5. Setelah deploy, cek cepat: `/admin/login` harus 200, login admin berhasil, dan upload gambar di menu Produk berjalan.
+
 ### Mengisi katalog awal
 
 ```bash
