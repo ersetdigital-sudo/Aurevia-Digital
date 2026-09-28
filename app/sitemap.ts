@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { termsMeta } from "@/data/legal";
+import { privacyMeta, termsMeta } from "@/data/legal";
 import { siteConfig } from "@/data/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -31,6 +31,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${siteConfig.url}/syarat-ketentuan`,
       lastModified: new Date(termsMeta.lastUpdated),
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
+    {
+      url: `${siteConfig.url}/kebijakan-privasi`,
+      lastModified: new Date(privacyMeta.lastUpdated),
       changeFrequency: "monthly",
       priority: 0.3,
     },

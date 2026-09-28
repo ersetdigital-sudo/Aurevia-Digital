@@ -3,33 +3,34 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Icon } from "@/components/Icon";
 import { LogoMark } from "@/components/Logo";
 import { Reveal } from "@/components/Reveal";
-import { termsIntro, termsMeta, termsSections } from "@/data/legal";
+import type { LegalDoc } from "@/types";
 
 function number(index: number) {
   return String(index + 1).padStart(2, "0");
 }
 
-export function Terms() {
+/**
+ * Layout halaman legal (Syarat & Ketentuan, Kebijakan Privasi, dst).
+ * Kontennya diambil dari data/legal.ts lewat tipe LegalDoc.
+ */
+export function LegalDocument({ doc }: { doc: LegalDoc }) {
   return (
     <>
       <section className="border-b border-line bg-surface-2">
         <div className="wrap pt-11 pb-10 lg:pt-14">
           <Breadcrumbs
-            items={[
-              { label: "Beranda", href: "/" },
-              { label: "Syarat & Ketentuan" },
-            ]}
+            items={[{ label: "Beranda", href: "/" }, { label: doc.title }]}
           />
           <p className="eyebrow flex items-center gap-1.5">
             <LogoMark className="h-4 w-4" />
             Legal
           </p>
           <h1 className="font-display mt-3 max-w-[16ch] text-[clamp(2.25rem,5.5vw,3.75rem)] leading-[1.06] font-semibold tracking-[-0.02em]">
-            Syarat &amp; Ketentuan
+            {doc.title}
           </h1>
-          <p className="mt-4 max-w-[68ch] text-[15px] leading-relaxed text-body">{termsIntro}</p>
+          <p className="mt-4 max-w-[68ch] text-[15px] leading-relaxed text-body">{doc.intro}</p>
           <p className="readout mt-5 text-[11px] tracking-[0.12em] text-muted uppercase">
-            Berlaku sejak {termsMeta.effectiveDate} · Versi {termsMeta.version}
+            Berlaku sejak {doc.meta.effectiveDate} · Versi {doc.meta.version}
           </p>
         </div>
       </section>
@@ -42,7 +43,7 @@ export function Terms() {
                 Daftar Isi
               </p>
               <ol className="mt-3 space-y-1.5">
-                {termsSections.map((section, index) => (
+                {doc.sections.map((section, index) => (
                   <li key={section.id}>
                     <a
                       href={`#${section.id}`}
@@ -58,7 +59,7 @@ export function Terms() {
 
             <div className="mt-4 rounded-2xl border border-dashed border-line-strong bg-surface-3 p-5">
               <p className="text-[13px] leading-relaxed text-body">
-                Ada pertanyaan soal ketentuan ini? Tim kami siap membantu setiap hari
+                Ada pertanyaan soal ketentuan di halaman ini? Tim kami siap membantu setiap hari
                 07.00–23.00 WIB.
               </p>
               <Link
@@ -73,7 +74,7 @@ export function Terms() {
 
           <div className="max-w-[72ch]">
             <ul className="space-y-10">
-              {termsSections.map((section, index) => (
+              {doc.sections.map((section, index) => (
                 <li key={section.id} id={section.id} className="scroll-mt-24">
                   <Reveal>
                     <p className="readout text-[11px] tracking-[0.14em] text-faint uppercase">
@@ -113,10 +114,7 @@ export function Terms() {
       <section className="pb-14">
         <div className="wrap">
           <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
-            <p className="max-w-[54ch] text-[13px] leading-relaxed text-body">
-              Dengan menggunakan Aurevia Digital, kamu menyetujui seluruh ketentuan di atas.
-              Terima kasih sudah mempercayakan pembayaran harianmu kepada kami.
-            </p>
+            <p className="max-w-[54ch] text-[13px] leading-relaxed text-body">{doc.outro}</p>
             <div className="flex flex-wrap gap-2.5">
               <Link
                 href="/"

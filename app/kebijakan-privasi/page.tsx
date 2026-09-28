@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { LegalDocument } from "@/components/LegalDocument";
 import { StructuredData } from "@/components/StructuredData";
-import { termsDoc, termsMeta } from "@/data/legal";
+import { privacyDoc, privacyMeta } from "@/data/legal";
 import { heroImage, siteConfig } from "@/data/site";
 import { legalStructuredData } from "@/lib/seo";
 
-const pagePath = "/syarat-ketentuan";
-const pageTitle = "Syarat & Ketentuan Aurevia Digital";
+const pagePath = "/kebijakan-privasi";
+const pageTitle = "Kebijakan Privasi Aurevia Digital";
 const pageDescription =
-  "Syarat & Ketentuan Aurevia Digital: aturan akun, harga dan biaya, pembayaran QRIS, " +
-  "status transaksi, refund, komplain, dan tanggung jawab layanan.";
+  "Kebijakan Privasi Aurevia Digital: data apa yang kami kumpulkan saat transaksi, cara " +
+  "penggunaannya, penyimpanan di peramban, berbagi data dengan penyedia, dan hak kamu atas data.";
 
 export const metadata: Metadata = {
-  title: termsDoc.title,
+  title: privacyDoc.title,
   description: pageDescription,
   alternates: { canonical: pagePath },
   openGraph: {
@@ -44,15 +44,15 @@ const structuredData = legalStructuredData({
   path: pagePath,
   title: pageTitle,
   description: pageDescription,
-  dateModified: termsMeta.lastUpdated,
-  breadcrumbLabel: termsDoc.title,
+  dateModified: privacyMeta.lastUpdated,
+  breadcrumbLabel: privacyDoc.title,
 });
 
-export default function TermsPage() {
+export default function PrivacyPage() {
   return (
     <>
       <StructuredData data={structuredData} />
-      <LegalDocument doc={termsDoc} />
+      <LegalDocument doc={privacyDoc} />
     </>
   );
 }

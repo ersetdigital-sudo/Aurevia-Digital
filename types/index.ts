@@ -67,6 +67,20 @@ export type LegalSection = {
   items?: string[];
 };
 
+export type LegalDocMeta = {
+  effectiveDate: string;
+  lastUpdated: string;
+  version: string;
+};
+
+export type LegalDoc = {
+  title: string;
+  intro: string;
+  outro: string;
+  meta: LegalDocMeta;
+  sections: LegalSection[];
+};
+
 export type CheckoutItem = {
   label: string;
   detail: string;

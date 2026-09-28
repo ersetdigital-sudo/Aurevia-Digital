@@ -33,6 +33,6 @@ export const socialLinks: SocialLink[] = [
 ];
 
 export const legalLinks: TextLink[] = [
-  { label: "Kebijakan Privasi", href: "#" },
+  { label: "Kebijakan Privasi", href: "/kebijakan-privasi" },
   { label: "Syarat & Ketentuan", href: "/syarat-ketentuan" },
 ];

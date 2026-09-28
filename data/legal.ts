@@ -1,4 +1,4 @@
-import type { LegalSection } from "@/types";
+import type { LegalDoc, LegalSection } from "@/types";
 
 export const termsMeta = {
   effectiveDate: "28 September 2026",
@@ -138,3 +138,152 @@ export const termsSections: LegalSection[] = [
     ],
   },
 ];
+
+export const privacyMeta: LegalDoc["meta"] = {
+  effectiveDate: "28 September 2026",
+  lastUpdated: "2026-09-28",
+  version: "1.0",
+};
+
+export const privacyIntro =
+  "Kebijakan ini menjelaskan data apa saja yang kami kumpulkan saat kamu memakai Aurevia Digital, " +
+  "cara kami menggunakannya, dan pilihan yang kamu miliki atas data tersebut.";
+
+export const privacySections: LegalSection[] = [
+  {
+    id: "ruang-lingkup",
+    title: "Ruang Lingkup",
+    paragraphs: [
+      "Kebijakan Privasi ini berlaku untuk penggunaan situs dan layanan Aurevia Digital, termasuk halaman Cek Status, Pusat Bantuan, dan seluruh transaksi yang diproses melalui platform kami.",
+      "Dengan melanjutkan penggunaan situs, kamu memahami cara kami menangani informasi sebagaimana dijelaskan di sini.",
+    ],
+  },
+  {
+    id: "data",
+    title: "Data yang Kami Kumpulkan",
+    paragraphs: [
+      "Kami hanya mengumpulkan informasi yang dibutuhkan untuk memproses dan memverifikasi transaksi:",
+    ],
+    items: [
+      "Data transaksi: nomor HP atau ID pelanggan, kategori layanan, produk/nominal, dan nilai transaksi.",
+      "Nomor invoice (format AD-XXXXXX) beserta waktu pembuatan dan status transaksi.",
+      "Data kontak yang kamu sampaikan sendiri saat mengajukan komplain lewat WhatsApp atau email.",
+      "Preferensi tampilan (terang/gelap) yang disimpan di peramban kamu.",
+    ],
+  },
+  {
+    id: "cara",
+    title: "Cara Pengumpulan",
+    paragraphs: [
+      "Data transaksi dikumpulkan secara otomatis saat kamu mengisi form checkout dan melakukan pembayaran.",
+      "Kami tidak pernah meminta PIN kartu, kata sandi rekening, maupun kode OTP — informasi tersebut menjadi tanggung jawab kamu sepenuhnya.",
+    ],
+  },
+  {
+    id: "tujuan",
+    title: "Tujuan Penggunaan",
+    paragraphs: ["Data yang terkumpul dipakai untuk:"],
+    items: [
+      "Memproses transaksi dan menerbitkan nomor invoice.",
+      "Memverifikasi pembayaran serta menampilkan status lewat halaman Cek Status.",
+      "Menangani komplain, refund, dan penelusuran transaksi bermasalah.",
+      "Memenuhi kewajiban hukum serta mencegah penyalahgunaan layanan.",
+      "Meningkatkan kualitas layanan dan keamanan platform.",
+    ],
+  },
+  {
+    id: "perangkat",
+    title: "Penyimpanan di Perangkatmu",
+    paragraphs: [
+      "Sebagian data hanya tersimpan di peramban kamu lewat localStorage, bukan di server kami:",
+    ],
+    items: [
+      "aurevia-theme — preferensi tema terang/gelap.",
+      "aurevia.invoices — riwayat invoice contoh untuk keperluan demo transaksi.",
+      "Keduanya bisa kamu hapus kapan saja lewat pengaturan privasi peramban tanpa memengaruhi transaksi yang sudah tercatat di sistem kami.",
+    ],
+  },
+  {
+    id: "berbagi",
+    title: "Berbagi Data dengan Pihak Ketiga",
+    paragraphs: [
+      "Kami membagikan data secukupnya hanya kepada pihak yang diperlukan untuk menyelesaikan transaksi, yaitu penyedia layanan (principal), penyedia QRIS, serta mitra bank atau e-wallet.",
+      "Data tidak pernah dijual, disewakan, atau dipertukarkan untuk kepentingan promosi pihak lain.",
+    ],
+  },
+  {
+    id: "keamanan",
+    title: "Keamanan Data",
+    paragraphs: [
+      "Seluruh komunikasi antara peramban dan situs kami terenkripsi lewat HTTPS.",
+      "Akses terhadap data transaksi dibatasi hanya untuk tim yang menangani operasional dan penanganan komplain.",
+    ],
+  },
+  {
+    id: "retensi",
+    title: "Berapa Lama Data Disimpan",
+    paragraphs: [
+      "Data transaksi disimpan selama masih diperlukan untuk keperluan verifikasi, riwayat pelanggan, dan penyelesaian sengketa.",
+      "Setelah masa tersebut berakhir, data dihapus atau dianonimkan sesuai ketentuan hukum yang berlaku.",
+    ],
+  },
+  {
+    id: "hak",
+    title: "Hak Kamu atas Data",
+    paragraphs: ["Kamu berhak untuk:"],
+    items: [
+      "Mengetahui data apa yang kami simpan tentang transaksi kamu.",
+      "Meminta koreksi data yang keliru.",
+      "Meminta penghapusan data, sepanjang tidak bertentangan dengan kewajiban hukum kami.",
+      "Menghapus data yang tersimpan di peramban secara mandiri.",
+    ],
+  },
+  {
+    id: "anak",
+    title: "Data Anak",
+    paragraphs: [
+      "Layanan Aurevia Digital ditujukan untuk pengguna berusia 17 tahun ke atas. Kami tidak sengaja mengumpulkan data dari anak di bawah usia tersebut.",
+    ],
+  },
+  {
+    id: "tautan",
+    title: "Tautan ke Pihak Ketiga",
+    paragraphs: [
+      "Situs ini dapat memuat tautan ke kanal media sosial kami. Ketentuan privasi di situs tersebut berada di luar tanggung jawab Aurevia Digital.",
+    ],
+  },
+  {
+    id: "perubahan-privasi",
+    title: "Perubahan Kebijakan",
+    paragraphs: [
+      "Kebijakan ini dapat diperbarui sewaktu-waktu. Versi terbaru beserta tanggal berlakunya selalu dipublikasikan di halaman ini.",
+    ],
+  },
+  {
+    id: "kontak-privasi",
+    title: "Kontak",
+    paragraphs: [
+      "Pertanyaan, permintaan data, atau keluhan mengenai privasi dapat disampaikan lewat Pusat Bantuan Aurevia Digital setiap hari 07.00–23.00 WIB.",
+    ],
+  },
+];
+
+export const termsDoc: LegalDoc = {
+  title: "Syarat & Ketentuan",
+  intro: termsIntro,
+  outro:
+    "Dengan menggunakan Aurevia Digital, kamu menyetujui seluruh ketentuan di atas. " +
+    "Terima kasih sudah mempercayakan pembayaran harianmu kepada kami.",
+  meta: termsMeta,
+  sections: termsSections,
+};
+
+export const privacyDoc: LegalDoc = {
+  title: "Kebijakan Privasi",
+  intro: privacyIntro,
+  outro:
+    "Data kamu bukan milik kami untuk dibagikan. Jika ada hal yang ingin diketahui soal " +
+    "penanganan datamu, tim kami siap menjelaskan lewat Pusat Bantuan.",
+  meta: privacyMeta,
+  sections: privacySections,
+};
