@@ -9,10 +9,10 @@ export const siteConfig = {
 };
 
 export const heroImage = {
-  src: "/images/hero-app-mockup.png",
-  width: 4000,
-  height: 1584,
-  alt: "Tampilan aplikasi Aurevia Digital di layar ponsel dengan pilihan layanan pembayaran tagihan",
+  src: "/images/hero-bg.webp",
+  width: 1800,
+  height: 1501,
+  alt: "Meja kerja dengan tanaman dan tumpukan buku sebagai latar halaman utama Aurevia Digital",
 };
 
 export const bandImage = {

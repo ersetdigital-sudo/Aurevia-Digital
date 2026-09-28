@@ -37,7 +37,7 @@ export type SavedInvoice = {
   createdAt: number;
 };
 
-const INVOICE_KEY = "neopay.invoices";
+const INVOICE_KEY = "aurevia.invoices";
 
 export function saveInvoice(invoice: SavedInvoice): void {
   try {

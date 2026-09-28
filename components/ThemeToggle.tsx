@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/cn";
 
-const STORAGE_KEY = "neopay-theme";
+const STORAGE_KEY = "aurevia-theme";
 
 export function ThemeToggle({ className }: { className?: string }) {
   const [isDark, setIsDark] = useState(false);

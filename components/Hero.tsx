@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Icon } from "@/components/Icon";
+import { HeroMockup } from "@/components/HeroMockup";
 import { HeroSearchForm } from "@/components/HeroSearchForm";
 import { heroFeatures } from "@/data/content";
 import { heroImage } from "@/data/site";
@@ -14,9 +15,10 @@ export function Hero() {
         fill
         priority
         sizes="100vw"
-        className="object-cover object-[15%_50%] lg:object-right"
+        className="object-cover object-center"
       />
       <div className="hero-veil" />
+      <HeroMockup />
 
       <div className="wrap relative pt-14 pb-12 lg:pt-16 lg:pb-14">
         <div className="relative z-10 lg:max-w-[600px]">

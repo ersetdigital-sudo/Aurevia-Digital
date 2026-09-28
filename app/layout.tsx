@@ -9,7 +9,7 @@ import { IconSprite } from "@/components/IconSprite";
 import { JsonLd } from "@/components/JsonLd";
 import { heroImage, siteConfig } from "@/data/site";
 
-const themeScript = `!function(){try{var s=localStorage.getItem("neopay-theme");var d=s==="dark"||(s===null&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark")}catch(e){}}();`;
+const themeScript = `!function(){try{var s=localStorage.getItem("aurevia-theme");var d=s==="dark"||(s===null&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark")}catch(e){}}();`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
