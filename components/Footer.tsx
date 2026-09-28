@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { Logo } from "@/components/Logo";
-import { footerHelpLinks, footerServiceLinks, legalLinks, socialLinks } from "@/data/footer";
+import { footerHelpLinks, footerServiceLinks, legalLinks, activeSocials } from "@/data/footer";
+import { getSocials } from "@/lib/catalog";
 
 function FooterLink({ href, label }: { href: string; label: string }) {
   const className = "transition hover:text-brand";
@@ -21,8 +22,10 @@ function FooterLink({ href, label }: { href: string; label: string }) {
   );
 }
 
-export function Footer() {
+export async function Footer() {
   const currentYear = new Date().getFullYear();
+  // Tautan sosmed diatur dari menu Pengaturan admin; yang kosong tidak ditampilkan.
+  const socials = activeSocials(await getSocials());
 
   return (
     <footer className="border-t border-line bg-surface pt-12 pb-6">
@@ -56,37 +59,35 @@ export function Footer() {
               </li>
             ))}
           </ul>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <p className="mb-3 text-[13px] font-bold">Bantuan</p>
-            <ul className="space-y-1.5 text-[12px] text-muted">
-              {footerHelpLinks.map((link) => (
-                <li key={link.label}>
-                  <FooterLink href={link.href} label={link.label} />
-                </li>
-              ))}
-            </ul>
+        </div>          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <p className="mb-3 text-[13px] font-bold">Bantuan</p>
+              <ul className="space-y-1.5 text-[12px] text-muted">
+                {footerHelpLinks.map((link) => (
+                  <li key={link.label}>
+                    <FooterLink href={link.href} label={link.label} />
+                  </li>
+                ))}
+              </ul>
+            </div>            {socials.length > 0 ? (
+              <div>
+                <p className="mb-3 text-[13px] font-bold">Ikuti Kami</p>
+                <ul className="flex flex-wrap gap-2 text-muted">
+                  {socials.map((social) => (
+                    <li key={social.label}>
+                      <a
+                        href={social.href}
+                        aria-label={social.label}
+                        className="transition hover:text-brand"
+                      >
+                        <Icon name={social.icon} className="h-[18px] w-[18px]" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
-
-          <div>
-            <p className="mb-3 text-[13px] font-bold">Ikuti Kami</p>
-            <ul className="flex gap-2 text-muted">
-              {socialLinks.map((social) => (
-                <li key={social.label}>
-                  <a
-                    href={social.href}
-                    aria-label={social.label}
-                    className="transition hover:text-brand"
-                  >
-                    <Icon name={social.icon} className="h-[18px] w-[18px]" />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
       </div>
 
       <div className="wrap mt-10 flex flex-col justify-between gap-2 border-t border-line pt-5 text-[11px] text-muted sm:flex-row">

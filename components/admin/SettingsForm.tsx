@@ -143,6 +143,50 @@ export function SettingsForm({ initialQris, initialSite }: Props) {
           </label>
 
           <div className="lg:col-span-2">
+            <p className="adm-label">Media sosial (ikon “Ikuti Kami” di footer situs)</p>
+            <div
+              className="overflow-hidden rounded-[10px] border"
+              style={{ borderColor: "var(--line)", background: "var(--inset)" }}
+            >
+              {site.socials.map((social, index) => (
+                <div
+                  key={social.icon}
+                  className="flex flex-col gap-1.5 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3"
+                  style={{
+                    borderBottom:
+                      index === site.socials.length - 1 ? "none" : "1px solid var(--line)",
+                  }}
+                >
+                  <span className="flex items-center gap-2 text-[13px] font-bold">
+                    <Icon name={social.icon} className="h-4 w-4" />
+                    {social.label}
+                  </span>
+                  <input
+                    className="adm-input flex-1"
+                    value={social.href}
+                    onChange={(event) => {
+                      const href = event.target.value;
+                      setSite({
+                        ...site,
+                        socials: site.socials.map((item, i) =>
+                          i === index ? { ...item, href } : item,
+                        ),
+                      });
+                    }}
+                    inputMode="url"
+                    autoComplete="off"
+                    spellCheck={false}
+                    placeholder={`https://${social.label.toLowerCase()}.com/username`}
+                  />
+                </div>
+              ))}
+            </div>
+            <span className="adm-hint">
+              Kosongkan URL untuk menyembunyikan ikon platform tersebut di footer.
+            </span>
+          </div>
+
+          <div className="lg:col-span-2">
             <button type="submit" className="btn btn-primary" disabled={busy === "site"}>
               <Icon name={busy === "site" ? "clock" : "check"} className="h-4 w-4" />
               {busy === "site" ? "Menyimpan…" : "Simpan informasi situs"}

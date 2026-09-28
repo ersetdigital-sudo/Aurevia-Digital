@@ -186,5 +186,7 @@ export type SiteSettings = {
   announcement: string;
   wa: string;
   email: string;
+  /** Tautan media sosial di footer situs publik. */
+  socials: SocialLink[];
 };
 

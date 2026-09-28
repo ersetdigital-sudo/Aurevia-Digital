@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase";
 import { badRequest, guard, serverError, str } from "@/lib/adminApi";
+import { normalizeSocials } from "@/data/footer";
 
 const KEYS = ["qris", "site"] as const;
 
@@ -37,6 +38,11 @@ export async function PUT(request: Request) {
   const value: Record<string, unknown> = {};
   for (const [key, raw] of Object.entries(body.value)) {
     value[key] = typeof raw === "string" ? str(raw, "", 600) : raw;
+  }
+
+  // Link sosmed dipaksa ke bentuk aman (platform default + URL dari admin).
+  if (body.key === "site") {
+    value.socials = normalizeSocials(value.socials);
   }
 
   const { data, error } = await adminClient()

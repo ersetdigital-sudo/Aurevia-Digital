@@ -79,7 +79,7 @@ export default function AdminLoginPage() {
                 if (error) setError(null);
               }}
               aria-invalid={Boolean(error)}
-              aria-describedby={error ? "admin-login-error" : "admin-login-hint"}
+              aria-describedby={error ? "admin-login-error" : undefined}
               placeholder="Masukkan password"
             />
             <button
@@ -99,11 +99,7 @@ export default function AdminLoginPage() {
               <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0" />
               {error}
             </p>
-          ) : (
-            <p id="admin-login-hint" className="adm-hint">
-              Password diambil dari environment variable <code>ADMIN_PASSWORD</code>.
-            </p>
-          )}
+          ) : null}
         </div>
 
         <button type="submit" className="btn btn-primary adm-login-submit" disabled={busy || !password}>

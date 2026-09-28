@@ -1,6 +1,7 @@
 import { anonClient } from "@/lib/supabase";
 import { services as staticServices } from "@/data/content";
 import { checkoutCategories as staticCheckout } from "@/data/checkout";
+import { normalizeSocials, socialLinks } from "@/data/footer";
 import type {
   CheckoutCategory,
   CheckoutGroup,
@@ -8,6 +9,8 @@ import type {
   DbProduct,
   QrisSettings,
   Service,
+  SiteSettings,
+  SocialLink,
 } from "@/types";
 
 export type Catalog = {
@@ -122,5 +125,22 @@ export async function getQris(): Promise<Qris | null> {
     return (data?.value as Qris | undefined) ?? null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Link media sosial (footer) dari pengaturan situs di database.
+ * Gagal / belum diatur -> pakai default statis supaya footer tetap tampil.
+ */
+export async function getSocials(): Promise<SocialLink[]> {
+  try {
+    const { data } = await anonClient()
+      .from("settings")
+      .select("value")
+      .eq("key", "site")
+      .maybeSingle();
+    return normalizeSocials((data?.value as SiteSettings | undefined)?.socials);
+  } catch {
+    return socialLinks;
   }
 }
