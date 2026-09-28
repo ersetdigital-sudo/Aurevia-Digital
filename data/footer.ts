@@ -20,7 +20,7 @@ export const footerHelpLinks: TextLink[] = [
   { label: "Cara Transaksi", href: "/#cara-transaksi" },
   { label: "Cek Status", href: "/status" },
   { label: "Hubungi Kami", href: "/bantuan#kontak" },
-  { label: "Syarat & Ketentuan", href: "#" },
+  { label: "Syarat & Ketentuan", href: "/syarat-ketentuan" },
 ];
 
 // Ganti dengan akun media sosial Aurevia Digital yang sebenarnya.
@@ -34,5 +34,5 @@ export const socialLinks: SocialLink[] = [
 
 export const legalLinks: TextLink[] = [
   { label: "Kebijakan Privasi", href: "#" },
-  { label: "Syarat & Ketentuan", href: "#" },
+  { label: "Syarat & Ketentuan", href: "/syarat-ketentuan" },
 ];

@@ -60,6 +60,13 @@ export type TextLink = {
   href: string;
 };
 
+export type LegalSection = {
+  id: string;
+  title: string;
+  paragraphs?: string[];
+  items?: string[];
+};
+
 export type CheckoutItem = {
   label: string;
   detail: string;
