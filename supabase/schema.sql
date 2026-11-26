@@ -141,6 +141,18 @@ create policy "public read settings" on public.settings
 for select using (true);
 
 -- =========================================================
+-- 6b. Hak akses tabel untuk role API
+--    Proyek Supabase baru TIDAK otomatis memberi GRANT ke role API, jadi tanpa
+--    ini service key kena "permission denied for table ...".
+--    service_role: akses penuh (server). anon/authenticated: hanya membaca
+--    kategori, produk, pengaturan (RLS membatasi baris yang terlihat).
+-- =========================================================
+grant select, insert, update, delete on all tables in schema public to service_role;
+grant select on public.categories, public.products, public.settings to anon, authenticated;
+
+alter default privileges in schema public grant select, insert, update, delete on tables to service_role;
+
+-- =========================================================
 -- 7. Storage: gambar admin (produk & QRIS)
 --    Bucket publik: URL-nya bisa dipakai langsung di <img>. Tulis/hapus hanya
 --    lewat server (service role), jadi tidak ada policy insert/update/delete.
