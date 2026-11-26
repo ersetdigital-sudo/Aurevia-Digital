@@ -71,6 +71,7 @@ export function SettingsForm({ initialQris, initialSite }: Props) {
           <div className="lg:col-span-2">
             <ImageUpload
               label="Foto QRIS"
+              folder="qris"
               value={qris.image_url}
               onChange={(url) => setQris({ ...qris, image_url: url })}
               hint="PNG/JPG hasil export QRIS dari bank atau payment gateway, maksimal 2 MB."

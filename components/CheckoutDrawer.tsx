@@ -8,7 +8,6 @@ import { QrisCode } from "@/components/QrisCode";
 import { getCheckoutCategory } from "@/data/checkout";
 import { services } from "@/data/content";
 import { createTrxRef, detectOperator, saveInvoice, submitOrder } from "@/lib/checkout";
-import { cldImg } from "@/lib/cloudinary";
 import { formatRupiah } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import type { CheckoutCategory, CheckoutItem, QrisSettings } from "@/types";
@@ -407,7 +406,7 @@ function CheckoutPanel({
                   {qris?.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={cldImg(qris.image_url, 400)}
+                      src={qris.image_url}
                       alt={`Kode QRIS ${qris.merchant || "Aurevia Digital"}`}
                       className="h-full w-full object-contain"
                     />

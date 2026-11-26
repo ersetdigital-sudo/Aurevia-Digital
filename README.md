@@ -28,7 +28,6 @@ Buka http://localhost:3000
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Baca katalog & pengaturan (RLS: hanya baris aktif) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Tulis pesanan/pesan + seluruh API admin (server-only) |
 | `ADMIN_PASSWORD` | Login panel admin (juga jadi kunci tanda tangan cookie sesi) |
-| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `CLOUDINARY_UPLOAD_PRESET` | Upload gambar produk & QRIS (signed upload dari server) |
 
 Base URL situs tidak perlu diisi: `data/site.ts` menghitungnya otomatis dari `VERCEL_PROJECT_PRODUCTION_URL`/`VERCEL_URL` (disediakan Vercel) dan `http://localhost:3000` di lokal, jadi domain kustom yang baru dipasang langsung ikut terpakai di sitemap, robots, dan JSON-LD.
 
@@ -37,13 +36,13 @@ Isi tabel `categories`, `products`, `orders`, `messages`, `settings` dengan menj
 ## Panel Admin & Data Dinamis
 
 - Panel admin ada di `/admin` (login `/admin/login`, satu password dari `ADMIN_PASSWORD`). Menu: Ringkasan, Produk & kategori, Pesanan, Pesan, Pengaturan (foto QRIS + info kontak).
-- Semua API admin dijaga cookie sesi bertanda tangan HMAC (`lib/adminAuth.ts`); upload gambar lewat `/api/cloudinary/sign` sehingga API secret Cloudinary tidak pernah sampai ke browser.
+- Semua API admin dijaga cookie sesi bertanda tangan HMAC (`lib/adminAuth.ts`); upload gambar lewat `/api/admin/upload` ke Supabase Storage (bucket publik `images`) sehingga service key tidak pernah sampai ke browser. Gambar lama dihapus setelah perubahan berhasil disimpan.
 - Halaman depan mengambil kategori/produk dari Supabase (`lib/catalog.ts`). Kalau tabel masih kosong atau gagal diambil, situs otomatis memakai data statis di `data/` supaya tidak pernah blank.
 - Pesanan dari checkout disimpan ke Supabase lewat `POST /api/orders`; halaman `/status` membaca ulang lewat `GET /api/orders/[ref]`.
 
 ## Checklist deploy Vercel
 
-1. Isi 8 variabel env di Project → Settings → Environment Variables untuk **Production** dan **Preview** (daftar lengkap di tabel environment di atas). Tanpa `SUPABASE_SERVICE_ROLE_KEY` panel admin tidak bisa login, tanpa kredensial Cloudinary upload gambar mati, dan tanpa `ADMIN_PASSWORD` sesi admin tidak bisa dibuat.
+1. Isi 8 variabel env di Project → Settings → Environment Variables untuk **Production** dan **Preview** (daftar lengkap di tabel environment di atas). Tanpa `SUPABASE_SERVICE_ROLE_KEY` panel admin tidak bisa login, tanpa `SUPABASE_SERVICE_ROLE_KEY` upload gambar mati, dan tanpa `ADMIN_PASSWORD` sesi admin tidak bisa dibuat.
 2. Pasang domain produksi di Project → Settings → Domains lalu arahkan DNS ke Vercel. URL di sitemap, robots, dan JSON-LD ikut menyesuaikan otomatis, tidak ada env yang perlu diubah.
 3. Jalankan `supabase/schema.sql` di SQL Editor Supabase sekali, lalu `npm run seed -- --apply` untuk mengisi katalog awal.
 4. Mengubah env var hanya berpengaruh setelah deployment berikutnya — picu redeploy (push commit atau Redeploy dari dashboard) setelah menambah/mengubah env.
@@ -76,7 +75,7 @@ app/
   layout.tsx        Root layout: font & metadata
   (site)/           Halaman publik (Header, Footer, JSON-LD) — page, tentang, bantuan, status, legal
   admin/            Panel admin: login + (panel) berisi ringkasan, produk, pesanan, pesan, pengaturan
-  api/              API admin, checkout pesanan, form pesan, tanda tangan upload Cloudinary
+  api/              API admin, checkout pesanan, form pesan, upload gambar ke Supabase Storage
   globals.css       Tema (token warna + dark mode) & komponen dasar
   fonts.ts          Plus Jakarta Sans via next/font/local
   icon.svg          Favicon (monogram Aurevia)
@@ -97,7 +96,7 @@ data/               Semua konten statis (edit di sini, bukan di JSX)
   content.ts        Daftar layanan di halaman depan
   checkout.ts       Kategori & produk checkout + fallback katalog
   status.ts         Contoh transaksi & status sistem
-lib/                Helper `cn`, ikon, format, checkout, supabase, cloudinary, adminAuth
+lib/                Helper `cn`, ikon, format, checkout, supabase, storage, adminAuth
 types/              Tipe data bersama
 public/images/      Aset gambar
 app/fonts/          File font lokal

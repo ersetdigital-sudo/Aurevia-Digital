@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase";
+import { deleteImageByUrl } from "@/lib/storage";
 import { badRequest, guard, serverError, str } from "@/lib/adminApi";
 import { normalizeSocials } from "@/data/footer";
 
@@ -45,6 +46,13 @@ export async function PUT(request: Request) {
     value.socials = normalizeSocials(value.socials);
   }
 
+  // Catat QRIS lama; baru dihapus SETELAH perubahan tersimpan.
+  let previousImage: string | null = null;
+  if (body.key === "qris") {
+    const { data: current } = await adminClient().from("settings").select("value").eq("key", "qris").maybeSingle();
+    previousImage = (current?.value as { image_url?: string } | null)?.image_url || null;
+  }
+
   const { data, error } = await adminClient()
     .from("settings")
     .upsert({ key: body.key, value, updated_at: new Date().toISOString() }, { onConflict: "key" })
@@ -52,5 +60,8 @@ export async function PUT(request: Request) {
     .single();
 
   if (error) return serverError(error.message);
+
+  const nextImage = (value as { image_url?: string }).image_url || null;
+  if (previousImage && previousImage !== nextImage) await deleteImageByUrl(previousImage);
   return NextResponse.json({ settings: { [data.key]: data.value } });
 }

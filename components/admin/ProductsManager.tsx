@@ -5,7 +5,6 @@ import { useMemo, useState, type FormEvent } from "react";
 import { Icon } from "@/components/Icon";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { rupiah } from "@/components/admin/status";
-import { cldImg } from "@/lib/cloudinary";
 import type { DbCategory, DbProduct } from "@/types";
 
 const ICON_CHOICES = [
@@ -302,7 +301,7 @@ export function ProductsManager({ categories, products }: Props) {
                         {product.image_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={cldImg(product.image_url, 96)}
+                            src={product.image_url}
                             alt=""
                             style={{
                               width: 36,
@@ -505,6 +504,7 @@ export function ProductsManager({ categories, products }: Props) {
               <div className="sm:col-span-2">
                 <ImageUpload
                   label="Gambar produk (opsional)"
+                  folder="produk"
                   value={productDraft.image_url}
                   onChange={(url) => setProductDraft({ ...productDraft, image_url: url })}
                 />

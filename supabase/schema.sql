@@ -77,7 +77,7 @@ create index if not exists orders_created_at_idx on public.orders (created_at de
 create index if not exists orders_status_idx on public.orders (status);
 
 create or replace function public.touch_updated_at() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = '' as $
 begin
   new.updated_at = now();
   return new;
@@ -139,3 +139,16 @@ for select using (active = true);
 drop policy if exists "public read settings" on public.settings;
 create policy "public read settings" on public.settings
 for select using (true);
+
+-- =========================================================
+-- 7. Storage: gambar admin (produk & QRIS)
+--    Bucket publik: URL-nya bisa dipakai langsung di <img>. Tulis/hapus hanya
+--    lewat server (service role), jadi tidak ada policy insert/update/delete.
+--    Aplikasi juga membuat bucket ini otomatis saat upload pertama bila belum ada.
+-- =========================================================
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('images', 'images', true, 2097152, array['image/png', 'image/jpeg', 'image/webp'])
+on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;

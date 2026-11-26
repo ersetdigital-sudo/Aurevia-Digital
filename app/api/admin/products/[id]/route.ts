@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase";
+import { deleteImageByUrl } from "@/lib/storage";
 import { badRequest, bool, guard, num, serverError, str } from "@/lib/adminApi";
 
 type Params = { params: Promise<{ id: string }> };
@@ -29,6 +30,13 @@ export async function PUT(request: Request, { params }: Params) {
 
   if (Object.keys(patch).length === 0) return badRequest("Tidak ada perubahan.");
 
+  // Catat gambar lama; baru dihapus SETELAH perubahan tersimpan.
+  let previousImage: string | null = null;
+  if ("image_url" in patch) {
+    const { data: current } = await adminClient().from("products").select("image_url").eq("id", id).maybeSingle();
+    previousImage = current?.image_url ?? null;
+  }
+
   const { data, error } = await adminClient()
     .from("products")
     .update(patch)
@@ -37,6 +45,8 @@ export async function PUT(request: Request, { params }: Params) {
     .single();
 
   if (error) return serverError(error.message);
+
+  if (previousImage && previousImage !== data.image_url) await deleteImageByUrl(previousImage);
   return NextResponse.json({ product: data });
 }
 
@@ -46,7 +56,10 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (denied) return denied;
 
   const { id } = await params;
+  const { data: current } = await adminClient().from("products").select("image_url").eq("id", id).maybeSingle();
   const { error } = await adminClient().from("products").delete().eq("id", id);
   if (error) return serverError(error.message);
+
+  await deleteImageByUrl(current?.image_url);
   return NextResponse.json({ ok: true });
 }

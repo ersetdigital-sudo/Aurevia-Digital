@@ -2,33 +2,27 @@
 
 import { useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { cldImg, publicIdFromUrl } from "@/lib/cloudinary";
 
 const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
 const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
-
-type SignResponse = {
-  signature: string;
-  timestamp: number;
-  apiKey: string;
-  uploadUrl: string;
-  uploadPreset?: string;
-  destroyUrl?: string;
-};
 
 type ImageUploadProps = {
   label: string;
   value: string;
   onChange: (url: string) => void;
   hint?: string;
+  /** Subfolder di bucket (huruf kecil, angka, tanda hubung), mis. "produk" atau "qris". */
+  folder?: string;
 };
 
 /**
- * Upload gambar admin -> Cloudinary (signed).
- * Signature diambil dari /api/cloudinary/sign; API secret tidak pernah
- * menyentuh browser. Preview tampil sebelum & sesudah upload.
+ * Upload gambar admin -> /api/admin/upload -> Supabase Storage (bucket `images`).
+ * Service key tidak pernah menyentuh browser. Preview tampil sebelum & sesudah upload.
+ *
+ * Gambar lama TIDAK dihapus di sini: API simpan menghapusnya setelah perubahan
+ * berhasil disimpan, jadi membatalkan perubahan tidak membuat gambar aktif hilang.
  */
-export function ImageUpload({ label, value, onChange, hint }: ImageUploadProps) {
+export function ImageUpload({ label, value, onChange, hint, folder = "umum" }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,69 +45,27 @@ export function ImageUpload({ label, value, onChange, hint }: ImageUploadProps) 
     setBusy(true);
 
     try {
-      const signRes = await fetch("/api/cloudinary/sign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "upload" }),
-      });
-      if (!signRes.ok) throw new Error(((await signRes.json().catch(() => ({}))) as { error?: string }).error ?? "Gagal menandatangani upload.");
-      const sign = (await signRes.json()) as SignResponse;
-
       const form = new FormData();
       form.append("file", file);
-      form.append("api_key", sign.apiKey);
-      form.append("timestamp", String(sign.timestamp));
-      form.append("signature", sign.signature);
-      form.append("upload_preset", sign.uploadPreset ?? "");
+      form.append("folder", folder);
 
-      const uploadRes = await fetch(sign.uploadUrl, { method: "POST", body: form });
-      const uploadData = (await uploadRes.json()) as {
-        secure_url?: string;
-        error?: { message?: string };
-      };
-      if (!uploadRes.ok || !uploadData.secure_url) {
-        throw new Error(uploadData.error?.message ?? "Upload Cloudinary gagal.");
-      }
+      const res = await fetch("/api/admin/upload", { method: "POST", body: form });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Upload gagal.");
+      if (!data.url) throw new Error("URL gambar tidak diterima.");
 
-      const oldUrl = value;
-      onChange(uploadData.secure_url);
-
-      // buang gambar lama supaya tidak menumpuk di folder Cloudinary
-      const oldPublicId = publicIdFromUrl(oldUrl);
-      if (oldPublicId) {
-        void destroyImage(oldPublicId);
-      }
+      onChange(data.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan saat upload.");
       setLocalPreview(null);
     } finally {
       setBusy(false);
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      URL.revokeObjectURL(objectUrl);
       if (inputRef.current) inputRef.current.value = "";
     }
   }
 
-  async function destroyImage(publicId: string) {
-    try {
-      const signRes = await fetch("/api/cloudinary/sign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "destroy", public_id: publicId }),
-      });
-      if (!signRes.ok) return;
-      const sign = (await signRes.json()) as SignResponse;
-      const form = new FormData();
-      form.append("public_id", publicId);
-      form.append("api_key", sign.apiKey);
-      form.append("timestamp", String(sign.timestamp));
-      form.append("signature", sign.signature);
-      await fetch(sign.destroyUrl ?? "", { method: "POST", body: form });
-    } catch {
-      /* gambar lama gagal dihapus tidak menghalangi simpan */
-    }
-  }
-
-  const shown = localPreview ?? (value ? cldImg(value, 240) : "");
+  const shown = localPreview ?? value;
 
   return (
     <div>
@@ -146,8 +98,6 @@ export function ImageUpload({ label, value, onChange, hint }: ImageUploadProps) 
                 className="btn btn-danger btn-sm"
                 disabled={busy}
                 onClick={() => {
-                  const publicId = publicIdFromUrl(value);
-                  if (publicId) void destroyImage(publicId);
                   setLocalPreview(null);
                   onChange("");
                 }}
